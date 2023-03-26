@@ -29,8 +29,8 @@ export default function Home() {
             localStorage.accessToken = body.access_token;
             localStorage.refreshToken = body.refresh_token;
             localStorage.expiresAt = (
-              new Date().getTime() +
-              body.expires_in * 1000
+              body.expires_in * 1000 +
+              new Date().getTime()
             ).toString();
           }
           router.replace("/");

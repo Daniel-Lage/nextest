@@ -1,0 +1,116 @@
+.body {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 20px;
+  align-items: center;
+  flex: 1;
+  background-color: var(--background);
+  overflow-y: scroll;
+  overflow-x: hidden;
+  gap: 20px;
+}
+
+.playlist {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  align-items: center;
+  width: 100vw;
+  min-height: 250px;
+  background-color: var(--secondary);
+}
+
+.vertical {
+  display: flex;
+  flex-direction: column;
+  min-height: 350px;
+}
+
+.playlist .image {
+  width: 220px;
+  height: 220px;
+}
+.playlist .name {
+  font-size: 20px;
+  font-weight: 700;
+}
+.playlist .owner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.track {
+  width: 90%;
+  display: flex;
+  align-items: center;
+  background-color: var(--button);
+  border-top-right-radius: 10px;
+  border-bottom-right-radius: 10px;
+  user-select: none;
+  gap: 10px;
+  padding-right: 10px;
+  cursor: pointer;
+}
+
+.track:hover {
+  background-color: var(--button-hover);
+}
+
+.track:active {
+  background-color: var(--button-active);
+}
+
+.track .image {
+  width: 50px;
+  height: 50px;
+}
+
+.track .details {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.track .name {
+  font-weight: 700;
+  flex: 1;
+  font-size: 15px;
+  color: black;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.track .album {
+  flex: 1;
+  font-size: 15px;
+  color: black;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.track .artists {
+  flex: 1;
+  font-size: 15px;
+  color: black;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.track .date {
+  font-size: 15px;
+  color: black;
+}
+
+.track .index {
+  font-size: 30px;
+  color: black;
+}
