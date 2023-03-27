@@ -1,15 +1,28 @@
 import Head from "next/head";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Image from "next/image";
 
 export default function Home() {
+  const [params, setParams] = useState();
   const router = useRouter();
 
   useEffect(() => {
     if (localStorage.refreshToken) {
       router.replace("/home");
     }
+    setParams(
+      new URLSearchParams({
+        response_type: "code",
+        client_id: "ed123287113345c49338d1cf20bec90e",
+        scope: [
+          "user-read-playback-state",
+          "user-modify-playback-state",
+          "user-read-private",
+        ].join(" "),
+        redirect_uri: location.origin,
+      }).toString()
+    );
   }, [router]);
 
   return (
@@ -24,19 +37,7 @@ export default function Home() {
         <div className="body">
           <a
             className="button"
-            href={
-              "https://accounts.spotify.com/authorize?" +
-              new URLSearchParams({
-                response_type: "code",
-                client_id: "ed123287113345c49338d1cf20bec90e",
-                scope: [
-                  "user-read-playback-state",
-                  "user-modify-playback-state",
-                  "user-read-private",
-                ].join(" "),
-                redirect_uri: location.origin,
-              }).toString()
-            }
+            href={"https://accounts.spotify.com/authorize?" + params}
           >
             <Image src="/enter.svg" alt="enter" width={40} height={40} />
             <div>Enter with Spotify</div>
