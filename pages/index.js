@@ -20,7 +20,7 @@ export default function Home() {
           "user-modify-playback-state",
           "user-read-private",
         ].join(" "),
-        redirect_uri: location.origin,
+        redirect_uri: location.origin + "/callback",
       }).toString()
     );
   }, [router]);
