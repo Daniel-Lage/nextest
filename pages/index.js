@@ -1,7 +1,7 @@
 import Head from "next/head";
-import styles from "@/styles/Home.module.css";
 import { useEffect } from "react";
 import { useRouter } from "next/router";
+import Image from "next/image";
 
 export default function Home() {
   const router = useRouter();
@@ -26,7 +26,8 @@ export default function Home() {
             className="button"
             href="https://accounts.spotify.com/authorize?response_type=code&client_id=ed123287113345c49338d1cf20bec90e&scope=user-read-playback-state+user-modify-playback-state+user-read-private&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fcallback"
           >
-            <div className={styles.text}>Login with Spotify</div>
+            <Image src="/enter.svg" alt="enter" width={40} height={40} />
+            <div>Enter with Spotify</div>
           </a>
         </div>
       </div>

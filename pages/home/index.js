@@ -4,41 +4,11 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import Playlist from "@/components/playlist";
 import Image from "next/image";
+import getAccessToken from "@/functions/getAccessToken";
 
 export default function Home() {
   const [playlists, setPlaylists] = useState();
   const router = useRouter();
-
-  function useToken(Function) {
-    if (parseInt(localStorage.expiresAt) < new Date().getTime()) {
-      fetch("https://accounts.spotify.com/api/token", {
-        method: "POST",
-        body: new URLSearchParams({
-          refresh_token: localStorage.refreshToken,
-          grant_type: "refresh_token",
-        }).toString(),
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-          Authorization:
-            "Basic ZWQxMjMyODcxMTMzNDVjNDkzMzhkMWNmMjBiZWM5MGU6NjE2Mzg1ZjJlYzNkNGQ2M2E3OWJkMWIxZGZhM2M4MGM=",
-        },
-      })
-        .then((response) => response.json())
-        .then((body) => {
-          if (body.error) {
-            return console.error(body.error_description);
-          }
-
-          localStorage.accessToken = body.access_token;
-          localStorage.refreshToken = body.refresh_token;
-          localStorage.expiresAt = (3000000 + new Date().getTime()).toString();
-
-          Function(localStorage.accessToken);
-        });
-    } else {
-      Function(localStorage.accessToken);
-    }
-  }
 
   function loadPlaylists({ next, items }, temp) {
     temp = [...temp, ...items];
@@ -51,7 +21,11 @@ export default function Home() {
       })
         .then((response) => response.json())
         .then((body) => {
-          loadPlaylists(body, temp);
+          if (body.error) {
+            console.error(body.error_description);
+          } else {
+            loadPlaylists(body, temp);
+          }
         });
     } else {
       setPlaylists(temp);
@@ -61,7 +35,7 @@ export default function Home() {
   useEffect(() => {
     if (!localStorage.accessToken) router.replace("/");
     else {
-      useToken((accessToken) => {
+      getAccessToken((accessToken) => {
         fetch("https://api.spotify.com/v1/me/playlists", {
           headers: {
             Authorization: "Bearer " + accessToken,
@@ -69,7 +43,11 @@ export default function Home() {
         })
           .then((response) => response.json())
           .then((body) => {
-            loadPlaylists(body, []);
+            if (body.error) {
+              console.error(body.error_description);
+            } else {
+              loadPlaylists(body, []);
+            }
           });
       });
     }

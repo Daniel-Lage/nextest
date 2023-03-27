@@ -7,11 +7,12 @@ export default function Track({
   },
   index,
   vertical,
+  onClick,
 }) {
   const date = new Date(added_at);
 
   return (
-    <div className={styles.track} onClick={() => {}}>
+    <div className={styles.track} onClick={onClick}>
       <img
         src={album.images[0].url}
         alt={name + " image"}

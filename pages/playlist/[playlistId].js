@@ -4,45 +4,16 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Track from "@/components/track";
 import Image from "next/image";
+import getAccessToken from "@/functions/getAccessToken";
+import shuffleArray from "@/functions/shuffleArray";
 
-export default function Home() {
+export default function Playlist() {
   const [playlist, setPlaylist] = useState();
   const [tracks, setTracks] = useState();
 
   const [vertical, setVertical] = useState();
 
   const router = useRouter();
-
-  function useToken(Function) {
-    if (parseInt(localStorage.expiresAt) < new Date().getTime()) {
-      fetch("https://accounts.spotify.com/api/token", {
-        method: "POST",
-        body: new URLSearchParams({
-          refresh_token: localStorage.refreshToken,
-          grant_type: "refresh_token",
-        }).toString(),
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-          Authorization:
-            "Basic ZWQxMjMyODcxMTMzNDVjNDkzMzhkMWNmMjBiZWM5MGU6NjE2Mzg1ZjJlYzNkNGQ2M2E3OWJkMWIxZGZhM2M4MGM=",
-        },
-      })
-        .then((response) => response.json())
-        .then((body) => {
-          if (body.error) {
-            return console.error(body.error_description);
-          }
-
-          localStorage.accessToken = body.access_token;
-          localStorage.refreshToken = body.refresh_token;
-          localStorage.expiresAt = (3000000 + new Date().getTime()).toString();
-
-          Function(localStorage.accessToken);
-        });
-    } else {
-      Function(localStorage.accessToken);
-    }
-  }
 
   function loadTracks({ tracks: { next, items } }, temp) {
     temp = [...temp, ...items];
@@ -74,7 +45,7 @@ export default function Home() {
       const { playlistId } = router.query;
 
       if (playlistId !== undefined) {
-        useToken((accessToken) => {
+        getAccessToken((accessToken) => {
           fetch("https://api.spotify.com/v1/playlists/" + playlistId, {
             headers: {
               Authorization: "Bearer " + accessToken,
@@ -94,10 +65,153 @@ export default function Home() {
     }
   }, [router]);
 
+  function play() {
+    getAccessToken((accessToken) => {
+      fetch("https://api.spotify.com/v1/me/player", {
+        headers: {
+          Authorization: "Bearer " + accessToken,
+        },
+      })
+        .then((response) => {
+          if (response.status === 200) return response.json();
+        })
+        .then((body) => {
+          if (body === undefined) {
+            return alert("OPEN SPOTIFY");
+          }
+
+          const shuffledTracks = shuffleArray([...tracks]).map(
+            (value) => value.track.uri
+          );
+
+          const deviceId = body.device.id;
+
+          fetch(
+            "https://api.spotify.com/v1/me/player/queue?" +
+              new URLSearchParams({
+                uri: shuffledTracks.pop(),
+                device_id: deviceId,
+              }).toString(),
+            {
+              method: "POST",
+              headers: {
+                Authorization: "Bearer " + accessToken,
+              },
+            }
+          ).then(() => {
+            fetch(
+              "https://api.spotify.com/v1/me/player/next?" +
+                new URLSearchParams({
+                  device_id: deviceId,
+                }).toString(),
+              {
+                method: "POST",
+                headers: {
+                  Authorization: "Bearer " + accessToken,
+                },
+              }
+            ).then(() => {
+              shuffledTracks.forEach((track) => {
+                fetch(
+                  "https://api.spotify.com/v1/me/player/queue?" +
+                    new URLSearchParams({
+                      uri: track,
+                      device_id: deviceId,
+                    }).toString(),
+                  {
+                    method: "POST",
+                    headers: {
+                      Authorization: "Bearer " + accessToken,
+                    },
+                  }
+                );
+              });
+            });
+          });
+        });
+    });
+  }
+
+  function playFrom(uri) {
+    getAccessToken((accessToken) => {
+      fetch("https://api.spotify.com/v1/me/player", {
+        headers: {
+          Authorization: "Bearer " + accessToken,
+        },
+      })
+        .then((response) => {
+          if (response.status === 200) return response.json();
+        })
+        .then((body) => {
+          if (body === undefined) {
+            return alert("OPEN SPOTIFY");
+          }
+
+          const deviceId = body.device.id;
+
+          const shuffledTracks = shuffleArray([...tracks]).map(
+            (value) => value.track.uri
+          );
+
+          shuffledTracks.splice(
+            shuffledTracks.findIndex((value) => value === uri),
+            1
+          );
+
+          fetch(
+            "https://api.spotify.com/v1/me/player/queue?" +
+              new URLSearchParams({
+                uri: uri,
+                device_id: deviceId,
+              }).toString(),
+            {
+              method: "POST",
+              headers: {
+                Authorization: "Bearer " + accessToken,
+              },
+            }
+          ).then(() => {
+            fetch(
+              "https://api.spotify.com/v1/me/player/next?" +
+                new URLSearchParams({
+                  device_id: deviceId,
+                }).toString(),
+              {
+                method: "POST",
+                headers: {
+                  Authorization: "Bearer " + accessToken,
+                },
+              }
+            ).then(() => {
+              shuffledTracks.forEach((track) => {
+                fetch(
+                  "https://api.spotify.com/v1/me/player/queue?" +
+                    new URLSearchParams({
+                      uri: track,
+                      device_id: deviceId,
+                    }).toString(),
+                  {
+                    method: "POST",
+                    headers: {
+                      Authorization: "Bearer " + accessToken,
+                    },
+                  }
+                );
+              });
+            });
+          });
+        });
+    });
+  }
+
   return (
     <>
       <Head>
-        <title>{playlist?.name || "Playlist"} - Spotify Helper</title>
+        {playlist ? (
+          <title>{playlist.name} - Spotify Helper</title>
+        ) : (
+          <title>Playlist - Spotify Helper</title>
+        )}
         <meta name="description" content="Generated by create next app" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
@@ -138,8 +252,13 @@ export default function Home() {
                   <div className={styles.name}>{playlist.name}</div>
                   <div className={styles.owner}>
                     {playlist.owner}
-                    <div className="button">
-                      <Image src="/play.svg" width={40} height={40} />
+                    <div className="button" onClick={play}>
+                      <Image
+                        src="/play.svg"
+                        alt="play"
+                        width={40}
+                        height={40}
+                      />
                     </div>
                   </div>
                 </div>
@@ -148,10 +267,11 @@ export default function Home() {
           </div>
           {tracks?.map((track, index) => (
             <Track
+              key={index}
               track={track}
-              id={track.id}
               index={index + 1}
               vertical={vertical}
+              onClick={() => playFrom(track.track.uri)}
             />
           ))}
         </div>
