@@ -12,7 +12,7 @@ export default function Callback() {
         method: "POST",
         body: new URLSearchParams({
           code: code,
-          redirect_uri: "http://localhost:3000/callback",
+          redirect_uri: location.origin + "/callback",
           grant_type: "authorization_code",
         }).toString(),
         headers: {
