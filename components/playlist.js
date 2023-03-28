@@ -1,8 +1,9 @@
+import { useRouter } from "next/router";
+import Image from "next/image";
+
 import getAccessToken from "@/functions/getAccessToken";
 import shuffleArray from "@/functions/shuffleArray";
 import styles from "@/styles/Home.module.css";
-import Image from "next/image";
-import { useRouter } from "next/router";
 
 export default function Playlist({
   playlist: {
@@ -13,10 +14,12 @@ export default function Playlist({
     owner: { display_name },
     images,
   },
+  setMessage,
+  vertical,
 }) {
   const router = useRouter();
 
-  function loadTracks({ tracks: { next, items } }, temp) {
+  function loadTracks({ next, items }, temp) {
     temp = [...temp, ...items];
 
     if (next) {
@@ -30,7 +33,7 @@ export default function Playlist({
           if (body.error) {
             console.error(body.error_description);
           } else {
-            loadTracks({ tracks: body }, temp);
+            loadTracks(body, temp);
           }
         });
     } else {
@@ -44,7 +47,7 @@ export default function Playlist({
         })
         .then((body) => {
           if (body === undefined) {
-            return alert("OPEN SPOTIFY");
+            return setMessage("Cant find active spotify device");
           }
 
           const deviceId = body.device.id;
@@ -99,9 +102,10 @@ export default function Playlist({
     }
   }
 
-  function play() {
+  function play(e) {
+    e.stopPropagation();
     getAccessToken((accessToken) => {
-      fetch("https://api.spotify.com/v1/playlists/" + id, {
+      fetch(href, {
         headers: {
           Authorization: "Bearer " + accessToken,
         },
@@ -118,24 +122,30 @@ export default function Playlist({
   }
 
   return (
-    <div className={styles.playlist}>
+    <div
+      className={
+        vertical ? `${styles.playlist} ${styles.vertical}` : styles.playlist
+      }
+      onClick={() => router.replace("/playlist/" + id)}
+    >
       <div
         style={{
           backgroundImage: `url(${images[0].url})`,
-          backgroundSize: "200px 200px",
+          backgroundSize: vertical ? "150px 150px" : "200px 200px",
         }}
         alt={name + " image"}
         className={styles.image}
       >
         <div className={styles.button} onClick={play}>
-          <Image src="/play.svg" alt="play" width={40} height={40} />
+          {vertical ? (
+            <Image src="/play.svg" alt="play" width={25} height={25} />
+          ) : (
+            <Image src="/play.svg" alt="play" width={40} height={40} />
+          )}
         </div>
       </div>
 
-      <div
-        className={styles.details}
-        onClick={() => router.replace("/playlist/" + id)}
-      >
+      <div className={styles.details}>
         <div className={styles.text}>
           <div className={styles.name}>{name}</div>
           {description || "de " + display_name}

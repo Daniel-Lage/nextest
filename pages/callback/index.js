@@ -1,6 +1,7 @@
-import Head from "next/head";
-import { useRouter } from "next/router";
 import { useEffect } from "react";
+
+import { useRouter } from "next/router";
+import Head from "next/head";
 
 export default function Callback() {
   const router = useRouter();
@@ -41,7 +42,7 @@ export default function Callback() {
   return (
     <>
       <Head>
-        <title>Getting Tokens... - Spotify Helper 2.0</title>
+        <title>Loading... - Spotify Helper 2.0</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>

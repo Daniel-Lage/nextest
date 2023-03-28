@@ -15,17 +15,13 @@ export default function getAccessToken(Function) {
       .then((response) => response.json())
       .then((body) => {
         if (body.error) {
-          return console.error(body.error_description);
+          console.error(body.error_description);
+        } else {
+          localStorage.accessToken = body.access_token;
+          localStorage.expiresAt = (3000000 + new Date().getTime()).toString();
+
+          Function(localStorage.accessToken);
         }
-
-        localStorage.accessToken = body.access_token;
-        localStorage.refreshToken = body.refresh_token;
-        localStorage.expiresAt = (3000000 + new Date().getTime()).toString();
-
-        Function(localStorage.accessToken);
-      })
-      .catch((reason) => {
-        console.error(reason);
       });
   } else {
     Function(localStorage.accessToken);

@@ -1,4 +1,5 @@
 import { Montserrat } from "next/font/google";
+
 import "@/styles/globals.css";
 
 const font = Montserrat({ subsets: ["latin"] });

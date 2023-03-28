@@ -4,7 +4,7 @@
   padding-bottom: 20px;
   align-items: center;
   flex: 1;
-  background-color: hsl(0, 0%, 10%);
+  background-color: var(--background);
   overflow-y: scroll;
   overflow-x: hidden;
   gap: 20px;
@@ -17,7 +17,7 @@
   align-items: center;
   width: 100vw;
   min-height: 250px;
-  background-color: hsl(var(--hue), 60%, 40%);
+  background-color: var(--secondary);
 }
 
 .vertical {
@@ -46,26 +46,25 @@
   width: 90%;
   display: flex;
   align-items: center;
-  background-color: hsl(var(--hue), 80%, 55%);
-  border-top-right-radius: 10px;
-  border-bottom-right-radius: 10px;
+  background-color: var(--button);
+  border-radius: 12px;
   user-select: none;
   gap: 10px;
   padding-right: 10px;
   cursor: pointer;
 }
-
 .track:hover {
-  background-color: hsl(var(--hue), 80%, 45%);
+  background-color: var(--button-hover);
 }
-
 .track:active {
-  background-color: hsl(var(--hue), 80%, 35%);
+  background-color: var(--button-active);
 }
 
 .track .image {
   width: 50px;
   height: 50px;
+  border-top-left-radius: 10px;
+  border-bottom-left-radius: 10px;
 }
 
 .track .details {
@@ -78,7 +77,7 @@
   font-weight: 700;
   flex: 1;
   font-size: 15px;
-  color: black;
+  color: var(--text);
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -88,7 +87,7 @@
 .track .album {
   flex: 1;
   font-size: 15px;
-  color: black;
+  color: var(--text);
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -98,7 +97,7 @@
 .track .artists {
   flex: 1;
   font-size: 15px;
-  color: black;
+  color: var(--text);
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -107,10 +106,10 @@
 
 .track .date {
   font-size: 15px;
-  color: black;
+  color: var(--text);
 }
 
 .track .index {
   font-size: 30px;
-  color: black;
+  color: var(--text);
 }
