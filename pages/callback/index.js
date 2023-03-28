@@ -33,7 +33,7 @@ export default function Callback() {
               new Date().getTime()
             ).toString();
           }
-          router.replace("/");
+          router.replace("/home");
         });
     }
   }, [router]);

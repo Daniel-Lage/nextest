@@ -1,40 +1,47 @@
 import Head from "next/head";
 import styles from "@/styles/Home.module.css";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Playlist from "@/components/playlist";
 import Image from "next/image";
 import getAccessToken from "@/functions/getAccessToken";
 
+async function loadPlaylists({ next, items }, temp) {
+  temp = [...temp, ...items];
+
+  if (next) {
+    const response = await fetch(next, {
+      headers: {
+        Authorization: "Bearer " + localStorage.accessToken,
+      },
+    });
+    const body = await response.json();
+    return await loadPlaylists({ tracks: body }, temp);
+  } else {
+    return temp;
+  }
+}
+
 export default function Home() {
   const [playlists, setPlaylists] = useState();
+  const [vertical, setVertical] = useState();
+  const [theme, setTheme] = useState();
+  const [open, setOpen] = useState(false);
+  const menu = useRef();
+
   const router = useRouter();
-
-  function loadPlaylists({ next, items }, temp) {
-    temp = [...temp, ...items];
-
-    if (next) {
-      fetch(next, {
-        headers: {
-          Authorization: "Bearer " + localStorage.accessToken,
-        },
-      })
-        .then((response) => response.json())
-        .then((body) => {
-          if (body.error) {
-            console.error(body.error_description);
-          } else {
-            loadPlaylists(body, temp);
-          }
-        });
-    } else {
-      setPlaylists(temp);
-    }
-  }
 
   useEffect(() => {
     if (!localStorage.accessToken) router.replace("/");
     else {
+      setVertical(innerHeight > innerWidth);
+
+      setTheme(localStorage.theme || "blue");
+
+      onresize = (e) => {
+        setVertical(innerHeight > innerWidth);
+      };
+
       getAccessToken((accessToken) => {
         fetch("https://api.spotify.com/v1/me/playlists", {
           headers: {
@@ -46,12 +53,24 @@ export default function Home() {
             if (body.error) {
               console.error(body.error_description);
             } else {
-              loadPlaylists(body, []);
+              loadPlaylists(body, []).then(setPlaylists);
             }
           });
       });
     }
   }, [router]);
+
+  useEffect(() => {
+    if (open) menu.current.style.height = "60px";
+    else menu.current.style.height = "0px";
+  }, [open]);
+
+  useEffect(() => {
+    switch (theme) {
+      case "blue":
+        break;
+    }
+  }, [theme]);
 
   return (
     <>
@@ -73,12 +92,36 @@ export default function Home() {
                 router.replace("/");
               }}
             >
-              <Image src="/back.svg" alt="back" width={40} height={40} />
+              {vertical ? (
+                <Image src="/logout.svg" alt="logout" width={25} height={25} />
+              ) : (
+                <Image src="/logout.svg" alt="logout" width={40} height={40} />
+              )}
             </div>
           </div>
           <div className="center">
             <div className="title">Spotify Helper</div>
           </div>
+          <div className="right">
+            <div className="button" onClick={() => setOpen((prev) => !prev)}>
+              {vertical ? (
+                <Image
+                  src="/ellipsis.svg"
+                  alt="ellipsis"
+                  width={25}
+                  height={25}
+                />
+              ) : (
+                <Image
+                  src="/ellipsis.svg"
+                  alt="ellipsis"
+                  width={40}
+                  height={40}
+                />
+              )}
+            </div>
+          </div>
+          <div className="menu" ref={menu}></div>
         </div>
         <div className={styles.body}>
           {playlists?.map((playlist) => (

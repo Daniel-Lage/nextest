@@ -39,7 +39,7 @@ export default function Home() {
             className="button"
             href={"https://accounts.spotify.com/authorize?" + params}
           >
-            <Image src="/enter.svg" alt="enter" width={40} height={40} />
+            <Image src="/login.svg" alt="login" width={40} height={40} />
             <div>Enter with Spotify</div>
           </a>
         </div>

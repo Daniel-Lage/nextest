@@ -1,10 +1,11 @@
 :root {
-  --primary: hsl(215, 80%, 60%);
-  --secondary: hsl(215, 60%, 40%);
+  --hue: 215;
+  --primary: hsl(var(--hue), 80%, 60%);
+  --secondary: hsl(var(--hue), 60%, 40%);
   --background: hsl(0, 0%, 10%);
-  --button: hsl(215, 80%, 55%);
-  --button-hover: hsl(215, 80%, 45%);
-  --button-active: hsl(215, 80%, 35%);
+  --button: hsl(var(--hue), 80%, 55%);
+  --button-hover: hsl(var(--hue), 80%, 45%);
+  --button-active: hsl(var(--hue), 80%, 35%);
 }
 
 html,
@@ -33,11 +34,10 @@ a {
   width: 100vw;
   justify-content: center;
   background-color: var(--primary);
-  padding-left: 10px;
-  padding-right: 10px;
 }
 
 .header .left {
+  margin-left: 10px;
   position: absolute;
   align-self: flex-start;
 }
@@ -48,6 +48,7 @@ a {
 }
 
 .header .right {
+  margin-right: 10px;
   position: absolute;
   align-self: flex-end;
 }
@@ -86,4 +87,25 @@ a {
 
 .button:active {
   background-color: var(--button-active);
+}
+
+.menu {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  align-self: flex-end;
+  background-color: var(--secondary);
+  overflow: hidden;
+  top: 100px;
+  width: 100px;
+  height: 0px;
+  transition: height 100ms ease-in-out;
+  border-bottom-left-radius: 10px;
+}
+
+.circle {
+  width: 50px;
+  height: 50px;
+  border-radius: 50px;
 }

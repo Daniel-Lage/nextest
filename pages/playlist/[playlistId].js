@@ -7,41 +7,40 @@ import Image from "next/image";
 import getAccessToken from "@/functions/getAccessToken";
 import shuffleArray from "@/functions/shuffleArray";
 
+async function loadTracks({ tracks: { next, items } }, temp) {
+  temp = [...temp, ...items];
+
+  if (next) {
+    const response = await fetch(next, {
+      headers: {
+        Authorization: "Bearer " + localStorage.accessToken,
+      },
+    });
+    const body = await response.json();
+    return await loadTracks({ tracks: body }, temp);
+  } else {
+    return temp;
+  }
+}
+
 export default function Playlist() {
   const [playlist, setPlaylist] = useState();
   const [tracks, setTracks] = useState();
-
   const [vertical, setVertical] = useState();
+  const [open, setOpen] = useState(false);
+  const menu = useRef();
 
   const router = useRouter();
 
-  function loadTracks({ tracks: { next, items } }, temp) {
-    temp = [...temp, ...items];
-
-    if (next) {
-      fetch(next, {
-        headers: {
-          Authorization: "Bearer " + localStorage.accessToken,
-        },
-      })
-        .then((response) => response.json())
-        .then((body) => {
-          loadTracks({ tracks: body }, temp);
-        });
-    } else {
-      setTracks(temp);
-    }
-  }
-
   useEffect(() => {
-    setVertical(innerHeight > innerWidth);
-
-    onresize = (e) => {
-      setVertical(innerHeight > innerWidth);
-    };
-
     if (!localStorage.accessToken) router.replace("/");
     else {
+      setVertical(innerHeight > innerWidth);
+
+      onresize = (e) => {
+        setVertical(innerHeight > innerWidth);
+      };
+
       const { playlistId } = router.query;
 
       if (playlistId !== undefined) {
@@ -58,7 +57,7 @@ export default function Playlist() {
                 name: body.name,
                 owner: body.owner.display_name,
               });
-              loadTracks(body, []);
+              loadTracks(body, []).then(setTracks);
             });
         });
       }
@@ -225,13 +224,38 @@ export default function Playlist() {
                 router.replace("/home");
               }}
             >
-              <Image src="/back.svg" alt="back" width={40} height={40} />
+              {vertical ? (
+                <Image src="/back.svg" alt="back" width={25} height={25} />
+              ) : (
+                <Image src="/back.svg" alt="back" width={40} height={40} />
+              )}
             </div>
           </div>
 
           <div className="center">
             <div className="title">Spotify Helper</div>
           </div>
+
+          <div className="right">
+            <div className="button" onClick={() => setOpen((prev) => !prev)}>
+              {vertical ? (
+                <Image
+                  src="/ellipsis.svg"
+                  alt="ellipsis"
+                  width={25}
+                  height={25}
+                />
+              ) : (
+                <Image
+                  src="/ellipsis.svg"
+                  alt="ellipsis"
+                  width={40}
+                  height={40}
+                />
+              )}
+            </div>
+          </div>
+          <div className="menu" ref={menu}></div>
         </div>
         <div className={styles.body}>
           <div

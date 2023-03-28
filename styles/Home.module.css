@@ -5,7 +5,7 @@
   justify-content: center;
   flex-wrap: wrap;
   flex: 1;
-  background-color: var(--background);
+  background-color: hsl(0, 0%, 10%);
   overflow-y: scroll;
   gap: 20px;
 }
@@ -15,7 +15,7 @@
   flex-direction: column;
   align-items: center;
   width: 200px;
-  background-color: var(--button);
+  background-color: hsl(var(--hue), 80%, 55%);
   border-bottom-left-radius: 10px;
   border-bottom-right-radius: 10px;
   user-select: none;
@@ -34,7 +34,7 @@
   align-self: flex-end;
   display: flex;
   padding: 10px;
-  background-color: var(--button);
+  background-color: hsl(var(--hue), 80%, 55%);
   align-items: center;
   justify-content: center;
   border-radius: 40px;
@@ -43,11 +43,11 @@
 }
 
 .playlist .button:hover {
-  background-color: var(--button-hover);
+  background-color: hsl(var(--hue), 80%, 45%);
 }
 
 .playlist .button:active {
-  background-color: var(--button-active);
+  background-color: hsl(var(--hue), 80%, 35%);
 }
 
 .playlist .text {
@@ -65,16 +65,18 @@
 }
 
 .playlist .details {
+  width: 200px;
   cursor: pointer;
-  background-color: var(--button);
+  flex: 1;
+  background-color: hsl(var(--hue), 80%, 55%);
 }
 
 .playlist .details:hover {
-  background-color: var(--button-hover);
+  background-color: hsl(var(--hue), 80%, 45%);
 }
 
 .playlist .details:active {
-  background-color: var(--button-active);
+  background-color: hsl(var(--hue), 80%, 35%);
 }
 
 .playlist .image {
