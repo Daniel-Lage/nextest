@@ -1,6 +1,6 @@
 import Head from "next/head";
 import styles from "@/styles/Playlist.module.css";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import Track from "@/components/track";
 import Image from "next/image";
