@@ -9,7 +9,6 @@ const themes = ["blue", "pink", "lime"];
 export default function Home() {
   const [params, setParams] = useState();
 
-  const [vertical, setVertical] = useState();
   const [theme, setTheme] = useState();
 
   const [open, setOpen] = useState(false);
@@ -26,12 +25,6 @@ export default function Home() {
       } else {
         setTheme("blue");
       }
-
-      setVertical(innerHeight > innerWidth);
-
-      onresize = (e) => {
-        setVertical(innerHeight > innerWidth);
-      };
 
       setParams(
         new URLSearchParams({
@@ -70,21 +63,12 @@ export default function Home() {
           </div>
           <div className="right">
             <div className="button" onClick={() => setOpen((prev) => !prev)}>
-              {vertical ? (
-                <Image
-                  src="/ellipsis.svg"
-                  alt="ellipsis"
-                  width={25}
-                  height={25}
-                />
-              ) : (
-                <Image
-                  src="/ellipsis.svg"
-                  alt="ellipsis"
-                  width={40}
-                  height={40}
-                />
-              )}
+              <Image
+                src="/ellipsis.svg"
+                alt="ellipsis"
+                width={25}
+                height={25}
+              />
             </div>
           </div>
           <div className="menu" ref={menu}>
@@ -107,7 +91,7 @@ export default function Home() {
             href={"https://accounts.spotify.com/authorize?" + params}
           >
             <Image src="/login.svg" alt="login" width={40} height={40} />
-            <div>Enter with Spotify</div>
+            <div style={{ color: "black" }}>Enter with Spotify</div>
           </a>
         </div>
       </div>
