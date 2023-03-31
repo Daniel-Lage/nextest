@@ -14,12 +14,12 @@ export default function Playlist({
     owner: { display_name },
     images,
   },
-  setMessage,
   vertical,
+  setError,
 }) {
   const router = useRouter();
 
-  function loadTracks({ next, items }, temp) {
+  function loadTracks({ next, items }, temp, deviceId) {
     temp = [...temp, ...items];
 
     if (next) {
@@ -33,45 +33,42 @@ export default function Playlist({
           if (body.error) {
             console.error(body.error_description);
           } else {
-            loadTracks(body, temp);
+            loadTracks(body, temp, deviceId);
           }
         });
     } else {
-      fetch("https://api.spotify.com/v1/me/player", {
-        headers: {
-          Authorization: "Bearer " + localStorage.accessToken,
-        },
-      })
-        .then((response) => {
-          if (response.status === 200) return response.json();
-        })
-        .then((body) => {
-          if (body === undefined) {
-            return setMessage("Cant find active spotify device");
+      const shuffledTracks = shuffleArray(temp).map((value) => value.track.uri);
+
+      fetch(
+        "https://api.spotify.com/v1/me/player/queue?" +
+          new URLSearchParams({
+            uri: shuffledTracks.pop(),
+            device_id: deviceId,
+          }).toString(),
+        {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer " + localStorage.accessToken,
+          },
+        }
+      ).then(() => {
+        fetch(
+          "https://api.spotify.com/v1/me/player/next?" +
+            new URLSearchParams({
+              device_id: deviceId,
+            }).toString(),
+          {
+            method: "POST",
+            headers: {
+              Authorization: "Bearer " + localStorage.accessToken,
+            },
           }
-
-          const deviceId = body.device.id;
-
-          const shuffledTracks = shuffleArray(temp).map(
-            (value) => value.track.uri
-          );
-
-          fetch(
-            "https://api.spotify.com/v1/me/player/queue?" +
-              new URLSearchParams({
-                uri: shuffledTracks.pop(),
-                device_id: deviceId,
-              }).toString(),
-            {
-              method: "POST",
-              headers: {
-                Authorization: "Bearer " + localStorage.accessToken,
-              },
-            }
-          ).then(() => {
+        ).then(() => {
+          shuffledTracks.forEach((track) => {
             fetch(
-              "https://api.spotify.com/v1/me/player/next?" +
+              "https://api.spotify.com/v1/me/player/queue?" +
                 new URLSearchParams({
+                  uri: track,
                   device_id: deviceId,
                 }).toString(),
               {
@@ -80,68 +77,62 @@ export default function Playlist({
                   Authorization: "Bearer " + localStorage.accessToken,
                 },
               }
-            ).then(() => {
-              shuffledTracks.forEach((track) => {
-                fetch(
-                  "https://api.spotify.com/v1/me/player/queue?" +
-                    new URLSearchParams({
-                      uri: track,
-                      device_id: deviceId,
-                    }).toString(),
-                  {
-                    method: "POST",
-                    headers: {
-                      Authorization: "Bearer " + localStorage.accessToken,
-                    },
-                  }
-                );
-              });
-            });
+            );
           });
         });
+      });
     }
   }
 
   function play(e) {
     e.stopPropagation();
     getAccessToken((accessToken) => {
-      fetch(href, {
+      fetch("https://api.spotify.com/v1/me/player", {
         headers: {
           Authorization: "Bearer " + accessToken,
         },
       })
-        .then((response) => response.json())
+        .then((response) => {
+          if (response.status === 200) return response.json();
+        })
         .then((body) => {
-          if (body.error) {
-            console.error(body.error_description);
-          } else {
-            loadTracks(body, []);
+          if (body === undefined) {
+            return setError("Cant find active spotify device");
           }
+
+          fetch(href, {
+            headers: {
+              Authorization: "Bearer " + accessToken,
+            },
+          })
+            .then((response) => response.json())
+            .then((body) => {
+              if (body.error) {
+                console.error(body.error_description);
+              } else {
+                loadTracks(body, [], body.device.id);
+              }
+            });
         });
     });
   }
 
   return (
     <div
-      className={
-        vertical ? `${styles.playlist} ${styles.vertical}` : styles.playlist
-      }
+      className={[styles.playlist, vertical && styles.vertical].join(" ")}
       onClick={() => router.replace("/playlist/" + id)}
     >
       <div
         style={{
           backgroundImage: `url(${images[0].url})`,
-          backgroundSize: vertical ? "150px 150px" : "200px 200px",
+          backgroundSize:
+            innerWidth < innerHeight ? "150px 150px" : "200px 200px",
         }}
         alt={name + " image"}
         className={styles.image}
       >
         <div className={styles.button} onClick={play}>
-          {vertical ? (
-            <Image src="/play.svg" alt="play" width={25} height={25} />
-          ) : (
-            <Image src="/play.svg" alt="play" width={40} height={40} />
-          )}
+          <Image src="/play.svg" alt="play" width={25} height={25} />
         </div>
       </div>
 

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { useRouter } from "next/router";
 import Image from "next/image";
@@ -7,8 +7,9 @@ import Head from "next/head";
 import getAccessToken from "@/functions/getAccessToken";
 import styles from "@/styles/Home.module.css";
 import Playlist from "@/components/playlist";
+import Filter from "@/components/filter";
 
-const themes = ["blue", "pink", "lime", "mono"];
+const themes = ["blue", "pink", "lime"];
 
 async function loadPlaylists({ next, items }, temp) {
   temp = [...temp, ...items];
@@ -28,12 +29,23 @@ async function loadPlaylists({ next, items }, temp) {
 
 export default function Home() {
   const [playlists, setPlaylists] = useState();
+  const [filter, setFilter] = useState("");
+
+  const filteredPlaylists = useMemo(
+    () =>
+      playlists?.filter(
+        (value) =>
+          value.name.toLowerCase().includes(filter.toLowerCase()) ||
+          value.owner.display_name.toLowerCase().includes(filter.toLowerCase())
+      ),
+    [playlists, filter]
+  );
 
   const [vertical, setVertical] = useState();
   const [theme, setTheme] = useState();
 
   const [open, setOpen] = useState(false);
-  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
 
   const menu = useRef();
   const router = useRouter();
@@ -49,7 +61,7 @@ export default function Home() {
 
       setVertical(innerHeight > innerWidth);
 
-      onresize = (e) => {
+      onresize = () => {
         setVertical(innerHeight > innerWidth);
       };
 
@@ -86,6 +98,8 @@ export default function Home() {
     if (theme) localStorage.theme = theme;
   }, [theme]);
 
+  console.log(playlists);
+
   return (
     <>
       <Head>
@@ -93,14 +107,14 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      {message && (
-        <div className="modal">
+      {error && (
+        <div className={"modal " + (theme || "loading")}>
           <div className="message">
-            {message}
+            {error}
             <div
               className="button"
               onClick={() => {
-                setMessage("");
+                setError("");
               }}
             >
               <Image src="/close.svg" alt="close" width={25} height={25} />
@@ -109,15 +123,9 @@ export default function Home() {
         </div>
       )}
       <div
-        className={"container " + (theme || "loading")}
-        style={
-          message
-            ? {
-                filter: "blur(8px)",
-                pointerEvents: "none",
-              }
-            : {}
-        }
+        className={["container ", theme || "loading", error && "error"].join(
+          " "
+        )}
       >
         <div className="header">
           <div className="left">
@@ -130,33 +138,30 @@ export default function Home() {
                 router.replace("/");
               }}
             >
-              {vertical ? (
-                <Image src="/logout.svg" alt="logout" width={25} height={25} />
-              ) : (
-                <Image src="/logout.svg" alt="logout" width={40} height={40} />
-              )}
+              <Image src="/logout.svg" alt="logout" width={25} height={25} />
             </div>
           </div>
           <div className="center">
-            <div className="title">Spotify Helper</div>
+            <Image
+              src="/favicon.ico"
+              alt="favicon"
+              width={50}
+              height={50}
+              className="logo"
+            />
+            <div className="title">
+              <div>Spotify</div>
+              <div>Helper</div>
+            </div>
           </div>
           <div className="right">
             <div className="button" onClick={() => setOpen((prev) => !prev)}>
-              {vertical ? (
-                <Image
-                  src="/ellipsis.svg"
-                  alt="ellipsis"
-                  width={25}
-                  height={25}
-                />
-              ) : (
-                <Image
-                  src="/ellipsis.svg"
-                  alt="ellipsis"
-                  width={40}
-                  height={40}
-                />
-              )}
+              <Image
+                src="/ellipsis.svg"
+                alt="ellipsis"
+                width={25}
+                height={25}
+              />
             </div>
           </div>
           <div className="menu" ref={menu}>
@@ -173,12 +178,15 @@ export default function Home() {
               ))}
           </div>
         </div>
+        <div className="subheader">
+          <Filter filter={filter} setFilter={setFilter} />
+        </div>
         <div className={styles.body}>
-          {playlists?.map((playlist) => (
+          {filteredPlaylists?.map((playlist) => (
             <Playlist
               playlist={playlist}
               key={playlist.id}
-              setMessage={setMessage}
+              setError={setError}
               vertical={vertical}
             />
           ))}

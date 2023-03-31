@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 import Image from "next/image";
 import Head from "next/head";
 
-const themes = ["blue", "pink", "lime", "mono"];
+const themes = ["blue", "pink", "lime"];
 
 export default function Home() {
   const [params, setParams] = useState();
@@ -63,7 +63,7 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <div className={"container " + (theme || "loading")}>
+      <div className={["container ", theme || "loading"].join(" ")}>
         <div className="header">
           <div className="center">
             <div className="title">Spotify Helper</div>

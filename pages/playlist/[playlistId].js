@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { useRouter } from "next/router";
 import Image from "next/image";
@@ -8,10 +8,11 @@ import getAccessToken from "@/functions/getAccessToken";
 import shuffleArray from "@/functions/shuffleArray";
 import styles from "@/styles/Playlist.module.css";
 import Track from "@/components/track";
+import Filter from "@/components/filter";
 
-const themes = ["blue", "pink", "lime", "mono"];
+const themes = ["blue", "pink", "lime"];
 
-async function loadTracks({ tracks: { next, items } }, temp) {
+async function loadTracks({ next, items }, temp) {
   temp = [...temp, ...items];
 
   if (next) {
@@ -21,7 +22,7 @@ async function loadTracks({ tracks: { next, items } }, temp) {
       },
     });
     const body = await response.json();
-    return await loadTracks({ tracks: body }, temp);
+    return await loadTracks(body, temp);
   } else {
     return temp.filter((value) => value.track);
   }
@@ -29,13 +30,28 @@ async function loadTracks({ tracks: { next, items } }, temp) {
 
 export default function Playlist() {
   const [playlist, setPlaylist] = useState();
-  const [tracks, setTracks] = useState();
+  const [tracks, setTracks] = useState([]);
+
+  const [filter, setFilter] = useState("");
+
+  const filteredTracks = useMemo(
+    () =>
+      tracks?.filter(
+        (value) =>
+          value.track.name.toLowerCase().includes(filter.toLowerCase()) ||
+          value.track.album.name.toLowerCase().includes(filter.toLowerCase()) ||
+          value.track.artists.some((value) =>
+            value.name.toLowerCase().includes(filter.toLowerCase())
+          )
+      ),
+    [tracks, filter]
+  );
 
   const [vertical, setVertical] = useState();
   const [theme, setTheme] = useState();
 
   const [open, setOpen] = useState(false);
-  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
 
   const menu = useRef();
   const router = useRouter();
@@ -43,15 +59,15 @@ export default function Playlist() {
   useEffect(() => {
     if (!localStorage.accessToken) router.replace("/");
     else {
-      setVertical(innerHeight > innerWidth);
-
       if (themes.some((t) => t === localStorage.theme)) {
         setTheme(localStorage.theme);
       } else {
         setTheme("blue");
       }
 
-      onresize = (e) => {
+      setVertical(innerHeight > innerWidth);
+
+      onresize = () => {
         setVertical(innerHeight > innerWidth);
       };
 
@@ -84,7 +100,7 @@ export default function Playlist() {
               setPlaylist(playlist);
               localStorage[playlistId + "playlist"] = JSON.stringify(playlist);
 
-              loadTracks(body, []).then((tracks) => {
+              loadTracks(body.tracks, []).then((tracks) => {
                 setTracks(tracks);
                 localStorage[playlistId + "tracks"] = JSON.stringify(tracks);
               });
@@ -114,7 +130,7 @@ export default function Playlist() {
         })
         .then((body) => {
           if (body === undefined) {
-            return setMessage("Cant find active spotify device");
+            return setError("Cant find active spotify device");
           }
 
           const shuffledTracks = shuffleArray([...tracks]).map(
@@ -181,7 +197,7 @@ export default function Playlist() {
         })
         .then((body) => {
           if (body === undefined) {
-            return setMessage("Cant find active spotify device");
+            return setError("Cant find active spotify device");
           }
 
           const deviceId = body.device.id;
@@ -252,14 +268,14 @@ export default function Playlist() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      {message && (
-        <div className="modal">
+      {error && (
+        <div className={"modal " + (theme || "loading")}>
           <div className="message">
-            {message}
+            {error}
             <div
               className="button"
               onClick={() => {
-                setMessage("");
+                setError("");
               }}
             >
               <Image src="/close.svg" alt="close" width={25} height={25} />
@@ -268,15 +284,9 @@ export default function Playlist() {
         </div>
       )}
       <div
-        className={"container " + (theme || "loading")}
-        style={
-          message
-            ? {
-                filter: "blur(4px)",
-                pointerEvents: "none",
-              }
-            : {}
-        }
+        className={["container ", theme || "loading", error && "error"].join(
+          " "
+        )}
       >
         <div className="header">
           <div className="left">
@@ -286,35 +296,32 @@ export default function Playlist() {
                 router.replace("/home");
               }}
             >
-              {vertical ? (
-                <Image src="/back.svg" alt="back" width={25} height={25} />
-              ) : (
-                <Image src="/back.svg" alt="back" width={40} height={40} />
-              )}
+              <Image src="/back.svg" alt="back" width={25} height={25} />
             </div>
           </div>
 
           <div className="center">
-            <div className="title">Spotify Helper</div>
+            <Image
+              src="/favicon.ico"
+              alt="favicon"
+              width={50}
+              height={50}
+              className="logo"
+            />
+            <div className="title">
+              <div>Spotify</div>
+              <div>Helper</div>
+            </div>
           </div>
 
           <div className="right">
             <div className="button" onClick={() => setOpen((prev) => !prev)}>
-              {vertical ? (
-                <Image
-                  src="/ellipsis.svg"
-                  alt="ellipsis"
-                  width={25}
-                  height={25}
-                />
-              ) : (
-                <Image
-                  src="/ellipsis.svg"
-                  alt="ellipsis"
-                  width={40}
-                  height={40}
-                />
-              )}
+              <Image
+                src="/ellipsis.svg"
+                alt="ellipsis"
+                width={25}
+                height={25}
+              />
             </div>
           </div>
           <div className="menu" ref={menu}>
@@ -332,13 +339,7 @@ export default function Playlist() {
           </div>
         </div>
         <div className={styles.body}>
-          <div
-            className={
-              vertical
-                ? `${styles.playlist} ${styles.vertical}`
-                : styles.playlist
-            }
-          >
+          <div className={["subheader", vertical && styles.vertical].join(" ")}>
             {playlist && (
               <>
                 <img
@@ -346,7 +347,7 @@ export default function Playlist() {
                   alt={playlist.name + " image"}
                   className={styles.image}
                 />
-                <div>
+                <div className={styles.playlist}>
                   <div className={styles.name}>{playlist.name}</div>
                   <div className={styles.owner}>
                     {playlist.owner}
@@ -354,22 +355,23 @@ export default function Playlist() {
                       <Image
                         src="/play.svg"
                         alt="play"
-                        width={40}
-                        height={40}
+                        width={25}
+                        height={25}
                       />
                     </div>
                   </div>
+                  <Filter filter={filter} setFilter={setFilter} />
                 </div>
               </>
             )}
           </div>
-          {tracks?.map((track, index) => (
+          {filteredTracks?.map((track, index) => (
             <Track
               key={index}
               track={track}
               index={index + 1}
-              vertical={vertical}
               onClick={() => playFrom(track.track.uri)}
+              vertical={vertical}
             />
           ))}
         </div>
