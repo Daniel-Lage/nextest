@@ -53,7 +53,7 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    if (!localStorage.accessToken) router.replace("/");
+    if (!localStorage.accessToken || !localStorage.saved) router.replace("/");
     else {
       if (themes.some((t) => t === localStorage.theme)) {
         setTheme(localStorage.theme);
