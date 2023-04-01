@@ -17,7 +17,7 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    if (localStorage.refreshToken) {
+    if (localStorage.refreshToken && localStorage.saved) {
       router.replace("/home");
     } else {
       if (themes.some((t) => t === localStorage.theme)) {
