@@ -34,9 +34,11 @@ export default function Home() {
   const filteredPlaylists = useMemo(
     () =>
       playlists?.filter(
-        (value) =>
-          value.name.toLowerCase().includes(filter.toLowerCase()) ||
-          value.owner.display_name.toLowerCase().includes(filter.toLowerCase())
+        (playlist) =>
+          playlist.name.toLowerCase().includes(filter.toLowerCase()) ||
+          playlist.owner.display_name
+            .toLowerCase()
+            .includes(filter.toLowerCase())
       ),
     [playlists, filter]
   );
@@ -65,9 +67,10 @@ export default function Home() {
         setVertical(innerHeight > innerWidth);
       };
 
-      setPlaylists(
-        localStorage.playlists && JSON.parse(localStorage.playlists)
-      );
+      setPlaylists([
+        ...Object.values(JSON.parse(localStorage.saved)),
+        ...Object.values(JSON.parse(localStorage.liked)),
+      ]);
 
       getAccessToken((accessToken) => {
         fetch("https://api.spotify.com/v1/me/playlists", {
@@ -81,8 +84,16 @@ export default function Home() {
               console.error(body.error_description);
             } else {
               loadPlaylists(body, []).then((playlists) => {
-                setPlaylists(playlists);
-                localStorage.playlists = JSON.stringify(playlists);
+                setPlaylists([
+                  ...playlists,
+                  ...Object.values(JSON.parse(localStorage.liked)),
+                ]);
+
+                const saved = {};
+                playlists.forEach((playlist) => {
+                  saved[playlist.id] = playlist;
+                });
+                localStorage.saved = JSON.stringify(saved);
               });
             }
           });
@@ -97,8 +108,6 @@ export default function Home() {
   useEffect(() => {
     if (theme) localStorage.theme = theme;
   }, [theme]);
-
-  console.log(playlists);
 
   return (
     <>

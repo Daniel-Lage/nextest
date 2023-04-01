@@ -30,6 +30,7 @@ async function loadTracks({ next, items }, temp) {
 
 export default function Playlist() {
   const [playlist, setPlaylist] = useState();
+  const [status, setStatus] = useState(); // "saved", "liked", or undefined
   const [tracks, setTracks] = useState([]);
 
   const [filter, setFilter] = useState("");
@@ -73,15 +74,19 @@ export default function Playlist() {
 
       const { playlistId } = router.query;
 
-      setPlaylist(
-        localStorage[playlistId + "playlist"] &&
-          JSON.parse(localStorage[playlistId + "playlist"])
-      );
+      const saved = JSON.parse(localStorage.saved);
+      const liked = JSON.parse(localStorage.liked);
+      const loaded = JSON.parse(localStorage.loaded);
 
-      setTracks(
-        localStorage[playlistId + "tracks"] &&
-          JSON.parse(localStorage[playlistId + "tracks"])
-      );
+      if (Object.keys(saved)?.some((id) => id === playlistId)) {
+        setPlaylist(saved[playlistId]);
+        setTracks(tracks[playlistId]);
+        setStatus("saved");
+      } else if (Object.keys(liked)?.some((id) => id === playlistId)) {
+        setPlaylist(liked[playlistId]);
+        setTracks(tracks[playlistId]);
+        setStatus("liked");
+      }
 
       if (playlistId !== undefined) {
         getAccessToken((accessToken) => {
@@ -92,18 +97,28 @@ export default function Playlist() {
           })
             .then((response) => response.json())
             .then((body) => {
-              const playlist = {
-                image: body?.images[0].url,
-                name: body.name,
-                owner: body.owner.display_name,
-              };
-              setPlaylist(playlist);
-              localStorage[playlistId + "playlist"] = JSON.stringify(playlist);
-
-              loadTracks(body.tracks, []).then((tracks) => {
-                setTracks(tracks);
-                localStorage[playlistId + "tracks"] = JSON.stringify(tracks);
-              });
+              setPlaylist(body);
+              if (status === "saved") {
+                saved[playlistId] = body;
+                localStorage.saved = JSON.stringify(saved);
+                loadTracks(body.tracks, []).then((tracks) => {
+                  setTracks(tracks);
+                  loaded[playlistId] = tracks;
+                  localStorage.loaded = JSON.stringify(loaded);
+                });
+              } else if (status === "liked") {
+                liked[playlistId] = body;
+                localStorage.liked = JSON.stringify(liked);
+                loadTracks(body.tracks, []).then((tracks) => {
+                  setTracks(tracks);
+                  loaded[playlistId] = tracks;
+                  localStorage.loaded = JSON.stringify(loaded);
+                });
+              } else {
+                loadTracks(body.tracks, []).then((tracks) => {
+                  setTracks(tracks);
+                });
+              }
             });
         });
       }
@@ -257,6 +272,8 @@ export default function Playlist() {
     });
   }
 
+  console.log(status);
+
   return (
     <>
       <Head>
@@ -340,18 +357,22 @@ export default function Playlist() {
         </div>
         <div className={styles.body}>
           <div className={["subheader", vertical && styles.vertical].join(" ")}>
-            {playlist && (
+            {playlist ? (
               <>
                 <img
-                  src={playlist.image}
+                  src={playlist.images[0].url}
                   alt={playlist.name + " image"}
                   className={styles.image}
                 />
                 <div className={styles.playlist}>
                   <div className={styles.name}>{playlist.name}</div>
+                  <div className={styles.total}>{playlist.tracks.total}</div>
                   <div className={styles.owner}>
-                    {playlist.owner}
-                    <div className="button" onClick={play}>
+                    {playlist.owner.display_name}
+                  </div>
+                  <Filter filter={filter} setFilter={setFilter} />
+                  <div className="row">
+                    <div className={styles.button} onClick={play}>
                       <Image
                         src="/play.svg"
                         alt="play"
@@ -359,11 +380,47 @@ export default function Playlist() {
                         height={25}
                       />
                     </div>
+                    {status === "saved" ? null : (
+                      <div
+                        className={styles.button}
+                        onClick={() =>
+                          setStatus((prev) => {
+                            const { playlistId } = router.query;
+
+                            const liked = JSON.parse(localStorage.liked);
+                            const loaded = JSON.parse(localStorage.loaded);
+
+                            if (!prev) {
+                              liked[playlistId] = playlist;
+                              loaded[playlistId] = tracks;
+                              localStorage.liked = JSON.stringify(liked);
+                              localStorage.loaded = JSON.stringify(loaded);
+                              return "liked";
+                            }
+
+                            delete liked[playlistId];
+                            delete loaded[playlistId];
+                            localStorage.liked = JSON.stringify(liked);
+                            localStorage.loaded = JSON.stringify(loaded);
+                          })
+                        }
+                      >
+                        <Image
+                          src={
+                            status === "liked"
+                              ? "/heart-filled.svg"
+                              : "/heart-outline.svg"
+                          }
+                          alt="heart"
+                          width={25}
+                          height={25}
+                        />
+                      </div>
+                    )}
                   </div>
-                  <Filter filter={filter} setFilter={setFilter} />
                 </div>
               </>
-            )}
+            ) : null}
           </div>
           {filteredTracks?.map((track, index) => (
             <Track

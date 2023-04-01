@@ -32,12 +32,33 @@
   font-size: 20px;
   font-weight: 700;
 }
+.total {
+  font-size: 15px;
+}
 .owner {
   display: flex;
   align-items: center;
   gap: 10px;
   font-size: 15px;
   font-weight: 700;
+}
+.button {
+  width: 45px;
+  height: 45px;
+  display: flex;
+  border-radius: 45px;
+  background-color: var(--button);
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+  box-shadow: 0px 0px 10px hsla(0, 0%, 0%, 0.3);
+}
+.button:hover {
+  background-color: var(--button-hover);
+}
+.button:active {
+  background-color: var(--button-active);
 }
 
 .track {

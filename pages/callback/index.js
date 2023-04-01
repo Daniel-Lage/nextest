@@ -29,6 +29,9 @@ export default function Callback() {
           } else {
             localStorage.accessToken = body.access_token;
             localStorage.refreshToken = body.refresh_token;
+            localStorage.saved = "{}";
+            localStorage.liked = "{}";
+            localStorage.loaded = "{}";
             localStorage.expiresAt = (
               body.expires_in * 1000 +
               new Date().getTime()
