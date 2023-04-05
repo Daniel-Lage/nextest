@@ -216,8 +216,9 @@ a {
 .filterButton {
   display: flex;
   width: 30px;
-  height: 30px;
+  height: 28px;
   background-color: var(--secondary);
+  border: 1px solid var(--background);
   align-items: center;
   justify-content: center;
   cursor: pointer;
@@ -230,4 +231,87 @@ a {
 }
 .filterButton:active {
   background-color: var(--active);
+}
+
+.sorter {
+  display: flex;
+  width: 200px;
+  height: 30px;
+  gap: 10px;
+  justify-content: flex-start;
+}
+.sorterOpener {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+  background-color: var(--button);
+  border-radius: 5px;
+  color: hsl(0, 0%, 100%);
+}
+.sorterOpener.open {
+  border-bottom-left-radius: 0px;
+  border-bottom-right-radius: 0px;
+}
+.sorterOpener:hover {
+  background-color: var(--button-hover);
+}
+.sorterOpener:active {
+  background-color: var(--button-active);
+}
+
+.sorterMenu {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 160px;
+  margin-top: 30px;
+  overflow: hidden;
+  background-color: var(--primary);
+  max-height: 0px;
+  text-align: center;
+  transition: max-height 50ms linear;
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
+}
+.sorterMenu.open {
+  max-height: 200px;
+}
+
+.sorterMenuItem {
+  flex: 1;
+  width: 150px;
+  margin-top: 5px;
+  cursor: pointer;
+  background-color: var(--button);
+  border-radius: 5px;
+  user-select: none;
+  color: hsl(0, 0%, 100%);
+}
+.sorterMenuItem:hover {
+  background-color: var(--button-hover);
+}
+.sorterMenuItem:active {
+  background-color: var(--button-active);
+}
+
+.sorterReverser {
+  display: flex;
+  width: 30px;
+  height: 30px;
+  background-color: var(--button);
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+  border-radius: 15px;
+}
+.sorterReverser:hover {
+  background-color: var(--button-hover);
+}
+.sorterReverser:active {
+  background-color: var(--button-active);
 }

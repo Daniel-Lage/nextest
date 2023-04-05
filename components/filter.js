@@ -1,9 +1,6 @@
 import Image from "next/image";
-import { useState } from "react";
 
 export default function Filter({ filter, setFilter }) {
-  const [focused, setFocused] = useState(false);
-
   return (
     <div className="filter">
       <input
@@ -11,12 +8,6 @@ export default function Filter({ filter, setFilter }) {
         type="text"
         value={filter}
         onChange={(e) => setFilter(e.target.value)}
-        onFocus={() => {
-          setFocused(true);
-        }}
-        onBlur={() => {
-          setFocused(false);
-        }}
         placeholder={"Search"}
         onKeyDown={(e) => e.key === "Escape" && setFilter("")}
       />

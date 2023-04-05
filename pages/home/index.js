@@ -8,8 +8,36 @@ import getAccessToken from "@/functions/getAccessToken";
 import styles from "@/styles/Home.module.css";
 import Playlist from "@/components/playlist";
 import Filter from "@/components/filter";
+import Sorter from "@/components/sorter";
 
 const themes = ["blue", "pink", "lime"];
+
+const sortKeys = {
+  Author: (a, b) => {
+    const A = a.owner.display_name.toLowerCase();
+    const B = b.owner.display_name.toLowerCase();
+
+    if (A > B) return 1;
+    if (A < B) return -1;
+
+    return sortKeys.Name(a, b);
+  },
+  Name: (a, b) => {
+    const A = a.name.toLowerCase();
+    const B = b.name.toLowerCase();
+
+    if (A > B) return 1;
+    if (A < B) return -1;
+
+    return 0;
+  },
+  Size: (a, b) => {
+    const A = a.tracks.total;
+    const B = b.tracks.total;
+
+    return B - A;
+  },
+};
 
 async function loadPlaylists({ next, items }, temp) {
   temp = [...temp, ...items];
@@ -28,12 +56,15 @@ async function loadPlaylists({ next, items }, temp) {
 }
 
 export default function Home() {
-  const [playlists, setPlaylists] = useState();
+  const [playlists, setPlaylists] = useState([]);
+
   const [filter, setFilter] = useState("");
+  const [sortKey, setSortKey] = useState();
+  const [reversed, setReversed] = useState();
 
   const filteredPlaylists = useMemo(
     () =>
-      playlists?.filter(
+      playlists.filter(
         (playlist) =>
           playlist.name.toLowerCase().includes(filter.toLowerCase()) ||
           playlist.owner.display_name
@@ -41,6 +72,14 @@ export default function Home() {
             .includes(filter.toLowerCase())
       ),
     [playlists, filter]
+  );
+
+  const sortedPlaylists = useMemo(
+    () =>
+      [...filteredPlaylists].sort((a, b) =>
+        reversed ? sortKeys[sortKey](b, a) : sortKeys[sortKey](a, b)
+      ),
+    [filteredPlaylists, sortKey, reversed]
   );
 
   const [vertical, setVertical] = useState();
@@ -71,6 +110,9 @@ export default function Home() {
         ...Object.values(JSON.parse(localStorage.saved)),
         ...Object.values(JSON.parse(localStorage.liked)),
       ]);
+
+      setSortKey(localStorage.sortPlaylistsKey);
+      setReversed(JSON.parse(localStorage.reversedPlaylists));
 
       getAccessToken((accessToken) => {
         fetch("https://api.spotify.com/v1/me/playlists", {
@@ -108,6 +150,15 @@ export default function Home() {
   useEffect(() => {
     if (theme) localStorage.theme = theme;
   }, [theme]);
+
+  useEffect(() => {
+    if (sortKey !== undefined) localStorage.sortPlaylistsKey = sortKey;
+  }, [sortKey]);
+
+  useEffect(() => {
+    if (reversed !== undefined)
+      localStorage.reversedPlaylists = JSON.stringify(reversed);
+  }, [reversed]);
 
   return (
     <>
@@ -188,10 +239,17 @@ export default function Home() {
           </div>
         </div>
         <div className="subheader">
+          <Sorter
+            sortKeys={sortKeys}
+            sortKey={sortKey}
+            setSortKey={setSortKey}
+            reversed={reversed}
+            setReversed={setReversed}
+          />
           <Filter filter={filter} setFilter={setFilter} />
         </div>
         <div className={styles.body}>
-          {filteredPlaylists?.map((playlist) => (
+          {sortedPlaylists.map((playlist) => (
             <Playlist
               playlist={playlist}
               key={playlist.id}

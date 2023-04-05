@@ -9,8 +9,45 @@ import shuffleArray from "@/functions/shuffleArray";
 import styles from "@/styles/Playlist.module.css";
 import Track from "@/components/track";
 import Filter from "@/components/filter";
+import Sorter from "@/components/sorter";
 
 const themes = ["blue", "pink", "lime"];
+
+const sortKeys = {
+  Artist: (a, b) => {
+    const A = a.track.artists[0].name.toLowerCase();
+    const B = b.track.artists[0].name.toLowerCase();
+
+    if (A > B) return 1;
+    if (A < B) return -1;
+
+    return sortKeys.Album(a, b);
+  },
+  Album: (a, b) => {
+    const A = a.track.album.name.toLowerCase();
+    const B = b.track.album.name.toLowerCase();
+
+    if (A > B) return 1;
+    if (A < B) return -1;
+
+    return b.track.disc_number - a.track.disc_number;
+  },
+  Name: (a, b) => {
+    const A = a.track.name.toLowerCase();
+    const B = b.track.name.toLowerCase();
+
+    if (A > B) return 1;
+    if (A < B) return -1;
+
+    return sortKeys.Date(a, b);
+  },
+  Date: (a, b) => {
+    const A = new Date(a.added_at);
+    const B = new Date(b.added_at);
+
+    return B.getTime() - A.getTime();
+  },
+};
 
 async function loadTracks({ next, items }, temp) {
   temp = [...temp, ...items];
@@ -30,14 +67,16 @@ async function loadTracks({ next, items }, temp) {
 
 export default function Playlist() {
   const [playlist, setPlaylist] = useState();
-  const [status, setStatus] = useState(); // "saved", "liked", or undefined
+  const [status, setStatus] = useState(null); // "saved", "liked", or null
   const [tracks, setTracks] = useState([]);
 
   const [filter, setFilter] = useState("");
+  const [sortKey, setSortKey] = useState();
+  const [reversed, setReversed] = useState();
 
   const filteredTracks = useMemo(
     () =>
-      tracks?.filter(
+      tracks.filter(
         (value) =>
           value.track.name.toLowerCase().includes(filter.toLowerCase()) ||
           value.track.album.name.toLowerCase().includes(filter.toLowerCase()) ||
@@ -46,6 +85,14 @@ export default function Playlist() {
           )
       ),
     [tracks, filter]
+  );
+
+  const sortedTracks = useMemo(
+    () =>
+      [...filteredTracks].sort((a, b) =>
+        reversed ? sortKeys[sortKey](b, a) : sortKeys[sortKey](a, b)
+      ),
+    [filteredTracks, sortKey, reversed]
   );
 
   const [vertical, setVertical] = useState();
@@ -74,19 +121,27 @@ export default function Playlist() {
 
       const { playlistId } = router.query;
 
-      const saved = JSON.parse(localStorage.saved);
-      const liked = JSON.parse(localStorage.liked);
+      const storage = {
+        saved: JSON.parse(localStorage.saved),
+        liked: JSON.parse(localStorage.liked),
+      };
       const loaded = JSON.parse(localStorage.loaded);
 
-      if (Object.keys(saved)?.some((id) => id === playlistId)) {
-        setPlaylist(saved[playlistId]);
-        setTracks(tracks[playlistId]);
-        setStatus("saved");
-      } else if (Object.keys(liked)?.some((id) => id === playlistId)) {
-        setPlaylist(liked[playlistId]);
-        setTracks(tracks[playlistId]);
-        setStatus("liked");
+      const nextStatus = storage.saved[playlistId]
+        ? "saved"
+        : storage.liked[playlistId]
+        ? "liked"
+        : null;
+
+      if (nextStatus) {
+        if (storage[nextStatus][playlistId])
+          setPlaylist(storage[nextStatus][playlistId]);
+        if (loaded[playlistId]) setTracks(loaded[playlistId]);
+        setStatus(nextStatus);
       }
+
+      setSortKey(localStorage.sortTracksKey);
+      setReversed(JSON.parse(localStorage.reversedTracks));
 
       if (playlistId !== undefined) {
         getAccessToken((accessToken) => {
@@ -98,17 +153,10 @@ export default function Playlist() {
             .then((response) => response.json())
             .then((body) => {
               setPlaylist(body);
-              if (status === "saved") {
-                saved[playlistId] = body;
-                localStorage.saved = JSON.stringify(saved);
-                loadTracks(body.tracks, []).then((tracks) => {
-                  setTracks(tracks);
-                  loaded[playlistId] = tracks;
-                  localStorage.loaded = JSON.stringify(loaded);
-                });
-              } else if (status === "liked") {
-                liked[playlistId] = body;
-                localStorage.liked = JSON.stringify(liked);
+              if (nextStatus) {
+                storage[nextStatus][playlistId] = body;
+                localStorage[nextStatus] = JSON.stringify(storage[nextStatus]);
+
                 loadTracks(body.tracks, []).then((tracks) => {
                   setTracks(tracks);
                   loaded[playlistId] = tracks;
@@ -132,6 +180,15 @@ export default function Playlist() {
   useEffect(() => {
     if (theme) localStorage.theme = theme;
   }, [theme]);
+
+  useEffect(() => {
+    if (sortKey !== undefined) localStorage.sortTracksKey = sortKey;
+  }, [sortKey]);
+
+  useEffect(() => {
+    if (reversed !== undefined)
+      localStorage.reversedTracks = JSON.stringify(reversed);
+  }, [reversed]);
 
   function play() {
     getAccessToken((accessToken) => {
@@ -272,8 +329,6 @@ export default function Playlist() {
     });
   }
 
-  console.log(status);
-
   return (
     <>
       <Head>
@@ -370,6 +425,13 @@ export default function Playlist() {
                   <div className={styles.owner}>
                     {playlist.owner.display_name}
                   </div>
+                  <Sorter
+                    sortKeys={sortKeys}
+                    sortKey={sortKey}
+                    setSortKey={setSortKey}
+                    reversed={reversed}
+                    setReversed={setReversed}
+                  />
                   <Filter filter={filter} setFilter={setFilter} />
                   <div className="row">
                     <div className={styles.button} onClick={play}>
@@ -422,7 +484,7 @@ export default function Playlist() {
               </>
             ) : null}
           </div>
-          {filteredTracks?.map((track, index) => (
+          {sortedTracks.map((track, index) => (
             <Track
               key={index}
               track={track}

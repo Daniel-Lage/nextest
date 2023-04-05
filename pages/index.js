@@ -31,6 +31,7 @@ export default function Home() {
           response_type: "code",
           client_id: "ed123287113345c49338d1cf20bec90e",
           scope: [
+            "playlist-read-private",
             "user-read-playback-state",
             "user-modify-playback-state",
             "user-read-private",
