@@ -100,6 +100,8 @@ export default function Playlist({
             return setError("Cant find active spotify device");
           }
 
+          const deviceId = body.device.id;
+
           fetch(href, {
             headers: {
               Authorization: "Bearer " + accessToken,
@@ -110,7 +112,7 @@ export default function Playlist({
               if (body.error) {
                 console.error(body.error_description);
               } else {
-                loadTracks(body, [], body.device.id);
+                loadTracks(body, [], deviceId);
               }
             });
         });
