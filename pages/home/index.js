@@ -254,7 +254,7 @@ export default function Home() {
               ))}
           </div>
         </div>
-        <div className="subheader">
+        <div className={"subheader" + (vertical ? " vertical" : "")}>
           <Sorter
             sortKeys={sortKeys}
             sortKey={sortKey}

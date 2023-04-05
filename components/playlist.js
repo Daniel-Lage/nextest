@@ -125,8 +125,7 @@ export default function Playlist({
       <div
         style={{
           backgroundImage: `url(${images[0].url})`,
-          backgroundSize:
-            innerWidth < innerHeight ? "150px 150px" : "200px 200px",
+          backgroundSize: vertical ? "150px 150px" : "200px 200px",
         }}
         alt={name + " image"}
         className={styles.image}

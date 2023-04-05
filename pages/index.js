@@ -17,7 +17,19 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    if (localStorage.refreshToken && localStorage.saved) {
+    if (
+      [
+        "accessToken",
+        "refreshToken",
+        "saved",
+        "liked",
+        "loaded",
+        "sortPlaylistsKey",
+        "reversedPlaylists",
+        "sortTracksKey",
+        "reversedTracks",
+      ].every((value) => localStorage[value] !== undefined)
+    ) {
       router.replace("/home");
     } else {
       if (themes.some((t) => t === localStorage.theme)) {
