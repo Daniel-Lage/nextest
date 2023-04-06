@@ -10,7 +10,7 @@ import Playlist from "@/components/playlist";
 import Filter from "@/components/filter";
 import Sorter from "@/components/sorter";
 
-const themes = ["blue", "pink", "lime"];
+const themes = ["blue", "pink", "lime", "mono"];
 
 const sortKeys = {
   Author: (a, b) => {
@@ -247,7 +247,7 @@ export default function Home() {
               ))}
           </div>
         </div>
-        <div className={styles.body}>
+        <div className="body">
           <div className="subheader">
             <Sorter
               sortKeys={sortKeys}
@@ -258,13 +258,15 @@ export default function Home() {
             />
             <Filter filter={filter} setFilter={setFilter} />
           </div>
-          {sortedPlaylists.map((playlist) => (
-            <Playlist
-              playlist={playlist}
-              key={playlist.id}
-              setError={setError}
-            />
-          ))}
+          <div className={styles.playlists}>
+            {sortedPlaylists.map((playlist) => (
+              <Playlist
+                playlist={playlist}
+                key={playlist.id}
+                setError={setError}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </>

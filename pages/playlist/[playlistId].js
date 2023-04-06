@@ -11,7 +11,7 @@ import Track from "@/components/track";
 import Filter from "@/components/filter";
 import Sorter from "@/components/sorter";
 
-const themes = ["blue", "pink", "lime"];
+const themes = ["blue", "pink", "lime", "mono"];
 
 const sortKeys = {
   Artist: (a, b) => {
@@ -426,7 +426,7 @@ export default function Playlist() {
               ))}
           </div>
         </div>
-        <div className={styles.body}>
+        <div className="body">
           <div className="subheader">
             {playlist ? (
               <>

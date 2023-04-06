@@ -1,11 +1,10 @@
-.body {
+.playlists {
   display: flex;
   padding-bottom: 20px;
   justify-content: center;
   flex-wrap: wrap;
   flex: 1;
   background-color: var(--background);
-  overflow-y: scroll;
   gap: 20px;
 }
 

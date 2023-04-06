@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 import Image from "next/image";
 import Head from "next/head";
 
-const themes = ["blue", "pink", "lime"];
+const themes = ["blue", "pink", "lime", "mono"];
 
 export default function Home() {
   const [params, setParams] = useState();

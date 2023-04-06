@@ -39,25 +39,34 @@ a {
   --primary: hsl(220, 30%, 30%);
   --secondary: hsl(220, 20%, 20%);
   --active: hsl(220, 40%, 40%);
-  --button: hsl(220, 60%, 50%);
-  --button-hover: hsl(220, 60%, 40%);
-  --button-active: hsl(220, 60%, 30%);
+  --button: hsl(220, 60%, 40%);
+  --button-hover: hsl(220, 65%, 45%);
+  --button-active: hsl(220, 70%, 50%);
 }
 .pink {
   --primary: hsl(325, 30%, 30%);
   --secondary: hsl(325, 20%, 20%);
   --active: hsl(325, 40%, 40%);
-  --button: hsl(325, 60%, 50%);
-  --button-hover: hsl(325, 60%, 40%);
-  --button-active: hsl(325, 60%, 30%);
+  --button: hsl(325, 60%, 40%);
+  --button-hover: hsl(325, 65%, 45%);
+  --button-active: hsl(325, 70%, 50%);
 }
 .lime {
   --primary: hsl(120, 30%, 30%);
   --secondary: hsl(120, 20%, 20%);
   --active: hsl(120, 40%, 40%);
-  --button: hsl(120, 60%, 50%);
-  --button-hover: hsl(120, 60%, 40%);
-  --button-active: hsl(120, 60%, 30%);
+  --button: hsl(120, 60%, 40%);
+  --button-hover: hsl(120, 65%, 45%);
+  --button-active: hsl(120, 70%, 50%);
+}
+.mono {
+  --background: hsl(0, 0%, 10%);
+  --primary: hsl(120, 0%, 25%);
+  --secondary: hsl(120, 0%, 20%);
+  --active: hsl(120, 0%, 30%);
+  --button: hsl(120, 0%, 40%);
+  --button-hover: hsl(120, 0%, 45%);
+  --button-active: hsl(120, 0%, 50%);
 }
 
 .header {
@@ -105,11 +114,13 @@ a {
 .body {
   display: flex;
   flex-direction: column;
+  padding-bottom: 20px;
   align-items: center;
-  justify-content: center;
   flex: 1;
   background-color: var(--background);
-  overflow: scroll;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  gap: 20px;
 }
 
 .button {
