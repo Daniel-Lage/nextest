@@ -129,7 +129,7 @@ a {
   background-color: var(--button);
   align-items: center;
   justify-content: center;
-  border-radius: 100%;
+  border-radius: 40px;
   cursor: pointer;
   user-select: none;
   gap: 10px;

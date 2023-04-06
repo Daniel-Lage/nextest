@@ -39,20 +39,36 @@ const sortKeys = {
   },
 };
 
-async function loadPlaylists({ next, items }, temp) {
-  temp = [...temp, ...items];
+async function loadPlaylists(playlists, temp) {
+  temp = [...temp, ...playlists.items];
 
-  if (next) {
-    const response = await fetch(next, {
-      headers: {
-        Authorization: "Bearer " + localStorage.accessToken,
-      },
+  if (playlists.next) {
+    const url = new URL(playlists.next);
+    const baseURL = url.origin + url.pathname;
+    const requests = [];
+
+    for (let offset = 50; offset < playlists.total; offset += 50) {
+      requests.push(
+        fetch(baseURL + "?limit=50&offset=" + offset, {
+          headers: {
+            Authorization: "Bearer " + localStorage.accessToken,
+          },
+        })
+      );
+    }
+
+    const responses = await Promise.all(requests);
+
+    const bodies = await Promise.all(
+      responses.map((response) => response.json())
+    );
+
+    bodies.forEach((body) => {
+      temp = [...temp, ...body.items];
     });
-    const body = await response.json();
-    return await loadPlaylists(body, temp);
-  } else {
-    return temp;
   }
+
+  return temp;
 }
 
 export default function Home() {
@@ -124,7 +140,7 @@ export default function Home() {
       setReversed(JSON.parse(localStorage.reversedPlaylists));
 
       getAccessToken((accessToken) => {
-        fetch("https://api.spotify.com/v1/me/playlists", {
+        fetch("https://api.spotify.com/v1/me/playlists?limit=50", {
           headers: {
             Authorization: "Bearer " + accessToken,
           },

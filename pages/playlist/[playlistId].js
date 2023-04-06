@@ -49,20 +49,35 @@ const sortKeys = {
   },
 };
 
-async function loadTracks({ next, items }, temp) {
-  temp = [...temp, ...items];
+async function loadTracks(tracks, temp) {
+  var temp = [...temp, ...tracks.items];
 
-  if (next) {
-    const response = await fetch(next, {
-      headers: {
-        Authorization: "Bearer " + localStorage.accessToken,
-      },
+  if (tracks.next) {
+    const url = new URL(tracks.next);
+    const baseURL = url.origin + url.pathname;
+    const requests = [];
+
+    for (let offset = 100; offset < tracks.total; offset += 100) {
+      requests.push(
+        fetch(baseURL + "?offset=" + offset, {
+          headers: {
+            Authorization: "Bearer " + localStorage.accessToken,
+          },
+        })
+      );
+    }
+
+    const responses = await Promise.all(requests);
+
+    const bodies = await Promise.all(
+      responses.map((response) => response.json())
+    );
+
+    bodies.forEach((body) => {
+      temp = [...temp, ...body.items];
     });
-    const body = await response.json();
-    return await loadTracks(body, temp);
-  } else {
-    return temp.filter((value) => value.track);
   }
+  return temp.filter((value) => value.track);
 }
 
 export default function Playlist() {
@@ -169,6 +184,7 @@ export default function Playlist() {
             .then((response) => response.json())
             .then((body) => {
               setPlaylist(body);
+
               if (nextStatus) {
                 storage[nextStatus][playlistId] = body;
                 localStorage[nextStatus] = JSON.stringify(storage[nextStatus]);

@@ -18,69 +18,36 @@ export default function Playlist({
 }) {
   const router = useRouter();
 
-  function loadTracks({ next, items }, temp, deviceId) {
-    temp = [...temp, ...items];
+  async function loadTracks(tracks, temp) {
+    temp = [...temp, ...tracks.items];
 
-    if (next) {
-      fetch(next, {
-        headers: {
-          Authorization: "Bearer " + localStorage.accessToken,
-        },
-      })
-        .then((response) => response.json())
-        .then((body) => {
-          if (body.error) {
-            console.error(body.error_description);
-          } else {
-            loadTracks(body, temp, deviceId);
-          }
-        });
-    } else {
-      const shuffledTracks = shuffleArray(temp).map((value) => value.track.uri);
+    if (tracks.next) {
+      const url = new URL(tracks.next);
+      const baseURL = url.origin + url.pathname;
+      const requests = [];
 
-      fetch(
-        "https://api.spotify.com/v1/me/player/queue?" +
-          new URLSearchParams({
-            uri: shuffledTracks.pop(),
-            device_id: deviceId,
-          }).toString(),
-        {
-          method: "POST",
-          headers: {
-            Authorization: "Bearer " + localStorage.accessToken,
-          },
-        }
-      ).then(() => {
-        fetch(
-          "https://api.spotify.com/v1/me/player/next?" +
-            new URLSearchParams({
-              device_id: deviceId,
-            }).toString(),
-          {
-            method: "POST",
+      for (let offset = 100; offset < tracks.total; offset += 100) {
+        requests.push(
+          fetch(baseURL + "?offset=" + offset, {
             headers: {
               Authorization: "Bearer " + localStorage.accessToken,
             },
-          }
-        ).then(() => {
-          shuffledTracks.forEach((track) => {
-            fetch(
-              "https://api.spotify.com/v1/me/player/queue?" +
-                new URLSearchParams({
-                  uri: track,
-                  device_id: deviceId,
-                }).toString(),
-              {
-                method: "POST",
-                headers: {
-                  Authorization: "Bearer " + localStorage.accessToken,
-                },
-              }
-            );
-          });
-        });
+          })
+        );
+      }
+
+      const responses = await Promise.all(requests);
+
+      const bodies = await Promise.all(
+        responses.map((response) => response.json())
+      );
+
+      bodies.forEach((body) => {
+        temp = [...temp, ...body.items];
       });
     }
+
+    return temp;
   }
 
   function play(e) {
@@ -111,7 +78,55 @@ export default function Playlist({
               if (body.error) {
                 console.error(body.error_description);
               } else {
-                loadTracks(body, [], deviceId);
+                loadTracks(body, []).then((tracks) => {
+                  const shuffledTracks = shuffleArray(tracks).map(
+                    (value) => value.track.uri
+                  );
+
+                  fetch(
+                    "https://api.spotify.com/v1/me/player/queue?" +
+                      new URLSearchParams({
+                        uri: shuffledTracks.pop(),
+                        device_id: deviceId,
+                      }).toString(),
+                    {
+                      method: "POST",
+                      headers: {
+                        Authorization: "Bearer " + localStorage.accessToken,
+                      },
+                    }
+                  ).then(() => {
+                    fetch(
+                      "https://api.spotify.com/v1/me/player/next?" +
+                        new URLSearchParams({
+                          device_id: deviceId,
+                        }).toString(),
+                      {
+                        method: "POST",
+                        headers: {
+                          Authorization: "Bearer " + localStorage.accessToken,
+                        },
+                      }
+                    ).then(() => {
+                      shuffledTracks.forEach((track) => {
+                        fetch(
+                          "https://api.spotify.com/v1/me/player/queue?" +
+                            new URLSearchParams({
+                              uri: track,
+                              device_id: deviceId,
+                            }).toString(),
+                          {
+                            method: "POST",
+                            headers: {
+                              Authorization:
+                                "Bearer " + localStorage.accessToken,
+                            },
+                          }
+                        );
+                      });
+                    });
+                  });
+                });
               }
             });
         });

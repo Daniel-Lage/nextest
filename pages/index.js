@@ -98,7 +98,7 @@ export default function Home() {
               ))}
           </div>
         </div>
-        <div className="body">
+        <div className="body" style={{ justifyContent: "center" }}>
           <a
             className="button"
             href={"https://accounts.spotify.com/authorize?" + params}
