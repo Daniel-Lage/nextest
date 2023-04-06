@@ -14,7 +14,6 @@ export default function Playlist({
     owner: { display_name },
     images,
   },
-  vertical,
   setError,
 }) {
   const router = useRouter();
@@ -121,13 +120,13 @@ export default function Playlist({
 
   return (
     <div
-      className={[styles.playlist, vertical && styles.vertical].join(" ")}
+      className={styles.playlist}
       onClick={() => router.replace("/playlist/" + id)}
     >
       <div
         style={{
           backgroundImage: `url(${images[0].url})`,
-          backgroundSize: vertical ? "150px 150px" : "200px 200px",
+          backgroundSize: "150px 150px",
         }}
         alt={name + " image"}
         className={styles.image}

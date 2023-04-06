@@ -427,7 +427,7 @@ export default function Playlist() {
           </div>
         </div>
         <div className={styles.body}>
-          <div className={["subheader", vertical && styles.vertical].join(" ")}>
+          <div className={styles.playlist}>
             {playlist ? (
               <>
                 <img
@@ -435,7 +435,7 @@ export default function Playlist() {
                   alt={playlist.name + " image"}
                   className={styles.image}
                 />
-                <div className={styles.playlist}>
+                <div className={styles.details}>
                   <div className={styles.name}>{playlist.name}</div>
                   <div className={styles.total}>{playlist.tracks.total}</div>
                   <div className={styles.owner}>

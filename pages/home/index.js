@@ -82,7 +82,6 @@ export default function Home() {
     [filteredPlaylists, sortKey, reversed]
   );
 
-  const [vertical, setVertical] = useState();
   const [theme, setTheme] = useState();
 
   const [open, setOpen] = useState(false);
@@ -115,12 +114,6 @@ export default function Home() {
       } else {
         setTheme("blue");
       }
-
-      setVertical(innerHeight > innerWidth);
-
-      onresize = () => {
-        setVertical(innerHeight > innerWidth);
-      };
 
       setPlaylists([
         ...Object.values(JSON.parse(localStorage.saved)),
@@ -254,7 +247,7 @@ export default function Home() {
               ))}
           </div>
         </div>
-        <div className={"subheader" + (vertical ? " vertical" : "")}>
+        <div className="subheader">
           <Sorter
             sortKeys={sortKeys}
             sortKey={sortKey}
@@ -270,7 +263,6 @@ export default function Home() {
               playlist={playlist}
               key={playlist.id}
               setError={setError}
-              vertical={vertical}
             />
           ))}
         </div>
