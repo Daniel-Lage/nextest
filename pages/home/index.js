@@ -247,17 +247,17 @@ export default function Home() {
               ))}
           </div>
         </div>
-        <div className="subheader">
-          <Sorter
-            sortKeys={sortKeys}
-            sortKey={sortKey}
-            setSortKey={setSortKey}
-            reversed={reversed}
-            setReversed={setReversed}
-          />
-          <Filter filter={filter} setFilter={setFilter} />
-        </div>
         <div className={styles.body}>
+          <div className="subheader">
+            <Sorter
+              sortKeys={sortKeys}
+              sortKey={sortKey}
+              setSortKey={setSortKey}
+              reversed={reversed}
+              setReversed={setReversed}
+            />
+            <Filter filter={filter} setFilter={setFilter} />
+          </div>
           {sortedPlaylists.map((playlist) => (
             <Playlist
               playlist={playlist}

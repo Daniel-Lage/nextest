@@ -10,20 +10,7 @@
   gap: 20px;
 }
 
-.playlist {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  align-self: stretch;
-  align-items: center;
-  background-color: var(--secondary);
-  padding: 20px;
-  flex-wrap: wrap;
-  z-index: 1;
-  box-shadow: 0px 5px 5px hsla(0, 0%, 0%, 0.2);
-}
-
-.playlist .details {
+.details {
   display: flex;
   padding: 10px;
   padding-bottom: 0px;
@@ -97,7 +84,7 @@
 
 .track .details {
   flex: 1;
-  display: flex;
+  flex-direction: row;
   align-items: center;
 }
 

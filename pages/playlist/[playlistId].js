@@ -427,7 +427,7 @@ export default function Playlist() {
           </div>
         </div>
         <div className={styles.body}>
-          <div className={styles.playlist}>
+          <div className="subheader">
             {playlist ? (
               <>
                 <img
