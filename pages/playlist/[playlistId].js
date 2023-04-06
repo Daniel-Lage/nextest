@@ -57,9 +57,9 @@ async function loadTracks(tracks, temp) {
     const baseURL = url.origin + url.pathname;
     const requests = [];
 
-    for (let offset = 100; offset < tracks.total; offset += 100) {
+    for (let offset = 50; offset < tracks.total; offset += 50) {
       requests.push(
-        fetch(baseURL + "?offset=" + offset, {
+        fetch(baseURL + "?limit=50&offset=" + offset, {
           headers: {
             Authorization: "Bearer " + localStorage.accessToken,
           },

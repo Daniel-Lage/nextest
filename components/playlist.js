@@ -5,6 +5,38 @@ import getAccessToken from "@/functions/getAccessToken";
 import shuffleArray from "@/functions/shuffleArray";
 import styles from "@/styles/Home.module.css";
 
+async function loadTracks(tracks, temp) {
+  temp = [...temp, ...tracks.items];
+
+  if (tracks.next) {
+    const url = new URL(tracks.next);
+    const baseURL = url.origin + url.pathname;
+    const requests = [];
+
+    for (let offset = 50; offset < tracks.total; offset += 50) {
+      requests.push(
+        fetch(baseURL + "?limit=50&offset=" + offset, {
+          headers: {
+            Authorization: "Bearer " + localStorage.accessToken,
+          },
+        })
+      );
+    }
+
+    const responses = await Promise.all(requests);
+
+    const bodies = await Promise.all(
+      responses.map((response) => response.json())
+    );
+
+    bodies.forEach((body) => {
+      temp = [...temp, ...body.items];
+    });
+  }
+
+  return temp;
+}
+
 export default function Playlist({
   playlist: {
     name,
@@ -17,38 +49,6 @@ export default function Playlist({
   setError,
 }) {
   const router = useRouter();
-
-  async function loadTracks(tracks, temp) {
-    temp = [...temp, ...tracks.items];
-
-    if (tracks.next) {
-      const url = new URL(tracks.next);
-      const baseURL = url.origin + url.pathname;
-      const requests = [];
-
-      for (let offset = 100; offset < tracks.total; offset += 100) {
-        requests.push(
-          fetch(baseURL + "?offset=" + offset, {
-            headers: {
-              Authorization: "Bearer " + localStorage.accessToken,
-            },
-          })
-        );
-      }
-
-      const responses = await Promise.all(requests);
-
-      const bodies = await Promise.all(
-        responses.map((response) => response.json())
-      );
-
-      bodies.forEach((body) => {
-        temp = [...temp, ...body.items];
-      });
-    }
-
-    return temp;
-  }
 
   function play(e) {
     e.stopPropagation();
