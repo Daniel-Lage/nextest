@@ -7,9 +7,9 @@ import Head from "next/head";
 import getAccessToken from "@/functions/getAccessToken";
 import shuffleArray from "@/functions/shuffleArray";
 import styles from "@/styles/Playlist.module.css";
-import Track from "@/components/track";
 import Filter from "@/components/filter";
 import Sorter from "@/components/sorter";
+import Track from "@/components/track";
 
 const themes = ["blue", "pink", "lime", "mono"];
 
@@ -453,9 +453,12 @@ export default function Playlist() {
                 />
                 <div className={styles.details}>
                   <div className={styles.name}>{playlist.name}</div>
-                  <div className={styles.total}>{playlist.tracks.total}</div>
+                  {playlist.description && (
+                    <div className={styles.owner}>{playlist.description}</div>
+                  )}
                   <div className={styles.owner}>
-                    {playlist.owner.display_name}
+                    {playlist.owner.display_name} - {playlist.tracks.total}{" "}
+                    músicas
                   </div>
                   <Sorter
                     sortKeys={sortKeys}
