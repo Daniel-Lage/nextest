@@ -39,7 +39,7 @@ const sortKeys = {
     if (A > B) return 1;
     if (A < B) return -1;
 
-    return sortKeys.Date(a, b);
+    return sortKeys.Data(a, b);
   },
   Data: (a, b) => {
     const A = new Date(a.added_at);

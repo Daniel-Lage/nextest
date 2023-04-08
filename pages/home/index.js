@@ -20,7 +20,7 @@ const sortKeys = {
     if (A > B) return 1;
     if (A < B) return -1;
 
-    return sortKeys.Name(a, b);
+    return sortKeys.Nome(a, b);
   },
   Nome: (a, b) => {
     const A = a.name.toLowerCase();
