@@ -14,7 +14,7 @@ import Track from "@/components/track";
 const themes = ["blue", "pink", "lime", "mono"];
 
 const sortKeys = {
-  Artist: (a, b) => {
+  Artista: (a, b) => {
     const A = a.track.artists[0].name.toLowerCase();
     const B = b.track.artists[0].name.toLowerCase();
 
@@ -32,7 +32,7 @@ const sortKeys = {
 
     return b.track.disc_number - a.track.disc_number;
   },
-  Name: (a, b) => {
+  Nome: (a, b) => {
     const A = a.track.name.toLowerCase();
     const B = b.track.name.toLowerCase();
 
@@ -41,7 +41,7 @@ const sortKeys = {
 
     return sortKeys.Date(a, b);
   },
-  Date: (a, b) => {
+  Data: (a, b) => {
     const A = new Date(a.added_at);
     const B = new Date(b.added_at);
 
@@ -171,7 +171,11 @@ export default function Playlist() {
         setStatus(nextStatus);
       }
 
-      setSortKey(localStorage.sortTracksKey);
+      if (sortKeys[localStorage.sortTracksKey]) {
+        setSortKey(localStorage.sortTracksKey);
+      } else {
+        setSortKey("Data");
+      }
       setReversed(JSON.parse(localStorage.reversedTracks));
 
       if (playlistId !== undefined) {

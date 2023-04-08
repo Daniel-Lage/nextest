@@ -13,7 +13,7 @@ import Sorter from "@/components/sorter";
 const themes = ["blue", "pink", "lime", "mono"];
 
 const sortKeys = {
-  Author: (a, b) => {
+  Criador: (a, b) => {
     const A = a.owner.display_name.toLowerCase();
     const B = b.owner.display_name.toLowerCase();
 
@@ -22,7 +22,7 @@ const sortKeys = {
 
     return sortKeys.Name(a, b);
   },
-  Name: (a, b) => {
+  Nome: (a, b) => {
     const A = a.name.toLowerCase();
     const B = b.name.toLowerCase();
 
@@ -31,7 +31,7 @@ const sortKeys = {
 
     return 0;
   },
-  Size: (a, b) => {
+  Tamanho: (a, b) => {
     const A = a.tracks.total;
     const B = b.tracks.total;
 
@@ -136,7 +136,12 @@ export default function Home() {
         ...Object.values(JSON.parse(localStorage.liked)),
       ]);
 
-      setSortKey(localStorage.sortPlaylistsKey);
+      if (sortKeys[localStorage.sortPlaylistsKey]) {
+        setSortKey(localStorage.sortPlaylistsKey);
+      } else {
+        setSortKey("Nome");
+      }
+
       setReversed(JSON.parse(localStorage.reversedPlaylists));
 
       getAccessToken((accessToken) => {
