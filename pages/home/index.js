@@ -161,14 +161,14 @@ export default function Home() {
                     name,
                     description,
                     id,
-                    tracks: { href, total },
+                    tracks: { total },
                     owner: { display_name },
                     images,
                   }) => ({
                     name,
                     description,
                     id,
-                    tracks: { href, total },
+                    tracks: { total },
                     owner: { display_name },
                     images: [{ url: images[0].url }],
                   })

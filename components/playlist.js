@@ -42,7 +42,6 @@ export default function Playlist({
     name,
     description,
     id,
-    tracks: { href },
     owner: { display_name },
     images,
   },
@@ -68,7 +67,7 @@ export default function Playlist({
 
           const deviceId = body.device.id;
 
-          fetch(href, {
+          fetch(`https://api.spotify.com/v1/playlists/${id}/tracks`, {
             headers: {
               Authorization: "Bearer " + accessToken,
             },
