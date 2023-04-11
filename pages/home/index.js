@@ -156,6 +156,23 @@ export default function Home() {
               console.error(body.error_description);
             } else {
               loadPlaylists(body, []).then((playlists) => {
+                playlists = playlists.map(
+                  ({
+                    name,
+                    description,
+                    id,
+                    tracks: { href, total },
+                    owner: { display_name },
+                    images,
+                  }) => ({
+                    name,
+                    description,
+                    id,
+                    tracks: { href, total },
+                    owner: { display_name },
+                    images: [{ url: images[0].url }],
+                  })
+                );
                 setPlaylists([
                   ...playlists,
                   ...Object.values(JSON.parse(localStorage.liked)),

@@ -13,11 +13,13 @@ export default function Track({
 
   return (
     <div className={styles.track} onClick={onClick}>
-      <img
-        src={album.images[0].url}
-        alt={name + " image"}
-        className={styles.image}
-      />
+      {album.images && (
+        <img
+          src={album.images[0].url}
+          alt={name + " image"}
+          className={styles.image}
+        />
+      )}
       <div className={styles.details}>
         <div className={styles.name}>{name}</div>
         {vertical || (

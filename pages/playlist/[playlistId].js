@@ -186,23 +186,51 @@ export default function Playlist() {
             },
           })
             .then((response) => response.json())
-            .then((body) => {
-              setPlaylist(body);
+            .then((playlist) => {
+              const tracks = {
+                next: playlist.tracks.next,
+                items: playlist.tracks.items,
+                total: playlist.tracks.total,
+              };
+              playlist = {
+                name: playlist.name,
+                description: playlist.description,
+                id: playlist.id,
+                tracks: { total: playlist.tracks.total },
+                owner: { display_name: playlist.owner.display_name },
+                images: [{ url: playlist.images[0].url }],
+              };
+              setPlaylist(playlist);
 
               if (nextStatus) {
-                storage[nextStatus][playlistId] = body;
+                storage[nextStatus][playlistId] = playlist;
                 localStorage[nextStatus] = JSON.stringify(storage[nextStatus]);
+              }
 
-                loadTracks(body.tracks, []).then((tracks) => {
-                  setTracks(tracks);
+              loadTracks(tracks, []).then((tracks) => {
+                tracks = tracks.map(
+                  ({ added_at, track: { album, artists, name, uri } }) => ({
+                    added_at,
+                    track: {
+                      album: {
+                        images: [{ url: album.images[0].url }],
+                        name: album.name,
+                      },
+                      artists: artists.map(({ name }) => ({
+                        name,
+                      })),
+                      name,
+                      uri,
+                    },
+                  })
+                );
+                setTracks(tracks);
+
+                if (nextStatus) {
                   loaded[playlistId] = tracks;
                   localStorage.loaded = JSON.stringify(loaded);
-                });
-              } else {
-                loadTracks(body.tracks, []).then((tracks) => {
-                  setTracks(tracks);
-                });
-              }
+                }
+              });
             });
         });
       }
@@ -368,7 +396,7 @@ export default function Playlist() {
   return (
     <>
       <Head>
-        {playlist?.name ? (
+        {playlist ? (
           <title>{playlist.name} - Spotify Helper 2.0</title>
         ) : (
           <title>Loading... - Spotify Helper 2.0</title>
