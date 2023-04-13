@@ -1,0 +1,30 @@
+.playlists {
+  display: flex;
+  padding-bottom: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+  flex: 1;
+  background-color: var(--background);
+  gap: 20px;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.details {
+  display: flex;
+  padding: 30px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  flex-direction: column;
+  width: 400px;
+  gap: 10px;
+}
+
+.image {
+  width: 220px;
+  height: 220px;
+  box-shadow: 0px 0px 15px hsla(0, 0%, 0%, 0.4);
+}
