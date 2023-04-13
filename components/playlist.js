@@ -135,7 +135,7 @@ export default function Playlist({
   return (
     <div
       className={styles.playlist}
-      onClick={() => router.replace("/playlist/" + id)}
+      onClick={() => router.push("/playlist/" + id)}
     >
       <div
         style={{

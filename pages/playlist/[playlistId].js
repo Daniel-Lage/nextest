@@ -428,7 +428,7 @@ export default function Playlist() {
         {playlist ? (
           <title>{playlist.name} - Spotify Helper 2.0</title>
         ) : (
-          <title>Loading... - Spotify Helper 2.0</title>
+          <title>Carregando... - Spotify Helper 2.0</title>
         )}
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
@@ -458,7 +458,12 @@ export default function Playlist() {
             <div
               className="button"
               onClick={() => {
-                router.replace("/home");
+                console.log(window.history);
+                if (window.history.length < 3) {
+                  router.push("/home");
+                } else {
+                  router.back();
+                }
               }}
             >
               <Image src="/back.svg" alt="back" width={25} height={25} />
@@ -526,7 +531,7 @@ export default function Playlist() {
                     <span
                       className={styles.owner}
                       onClick={() => {
-                        router.replace("/user/" + playlist.owner.id);
+                        router.push("/user/" + playlist.owner.id);
                       }}
                     >
                       {playlist.owner.display_name}{" "}

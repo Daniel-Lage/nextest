@@ -1,7 +1,10 @@
 .details {
   display: flex;
-  padding: 10px;
+  padding: 30px;
+  padding-top: 10px;
+  padding-bottom: 10px;
   flex-direction: column;
+  width: 400px;
   gap: 10px;
 }
 

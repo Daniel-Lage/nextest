@@ -5,7 +5,7 @@ import Image from "next/image";
 import Head from "next/head";
 
 import getAccessToken from "@/functions/getAccessToken";
-import styles from "@/styles/Home.module.css";
+import styles from "@/styles/User.module.css";
 import Playlist from "@/components/playlist";
 
 const themes = ["blue", "pink", "lime", "mono"];
@@ -70,6 +70,7 @@ async function loadPlaylists(playlists, temp) {
 }
 
 export default function Home() {
+  const [user, setUser] = useState();
   const [playlists, setPlaylists] = useState([]);
 
   const [filter, setFilter] = useState("");
@@ -159,8 +160,23 @@ export default function Home() {
       setReversed(JSON.parse(localStorage.reversedPlaylists));
 
       const { userId } = router.query;
+
       if (userId !== undefined) {
         getAccessToken((accessToken) => {
+          fetch("https://api.spotify.com/v1/users/" + userId, {
+            headers: {
+              Authorization: "Bearer " + accessToken,
+            },
+          })
+            .then((response) => response.json())
+            .then((body) => {
+              const user = {
+                display_name: body.display_name,
+                images: [{ url: body.images[0].url }],
+              };
+              setUser(user);
+            });
+
           fetch(
             "https://api.spotify.com/v1/users/" +
               userId +
@@ -224,6 +240,11 @@ export default function Home() {
   return (
     <>
       <Head>
+        {user ? (
+          <title>{user.display_name} - Spotify Helper 2.0</title>
+        ) : (
+          <title>Carregando... - Spotify Helper 2.0</title>
+        )}
         <title>Página Inicial - Spotify Helper 2.0</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
@@ -253,7 +274,11 @@ export default function Home() {
             <div
               className="button"
               onClick={() => {
-                router.replace("/home");
+                if (window.history.length < 3) {
+                  router.push("/home");
+                } else {
+                  router.back();
+                }
               }}
             >
               <Image src="/back.svg" alt="back" width={25} height={25} />
@@ -301,57 +326,72 @@ export default function Home() {
         </div>
         <div className="body">
           <div className="subheader">
-            <div className="sorter">
-              <div
-                className={"sorterOpener" + (sorterOpen ? " open" : "")}
-                onClick={() => setSorterOpen((prev) => !prev)}
-              >
-                {sortKey}
+            {user && (
+              <img
+                src={user.images[0].url}
+                alt={user.display_name}
+                className={styles.image}
+              />
+            )}
+            <div className={styles.details}>
+              {user && <div className={styles.title}>{user.display_name}</div>}
+              <div className="sorter">
+                <div
+                  className={"sorterOpener" + (sorterOpen ? " open" : "")}
+                  onClick={() => setSorterOpen((prev) => !prev)}
+                >
+                  {sortKey}
+                </div>
+                <div
+                  className="sorterReverser"
+                  onClick={() => setReversed((prev) => !prev)}
+                >
+                  {reversed ? (
+                    <Image src="/down.svg" alt="down" width={15} height={15} />
+                  ) : (
+                    <Image src="/up.svg" alt="up" width={15} height={15} />
+                  )}
+                </div>
+
+                <div className={"sorterMenu" + (sorterOpen ? " open" : "")}>
+                  {Object.keys(sortKeys)
+                    .filter((value) => value !== sortKey)
+                    .map((value) => (
+                      <div
+                        key={value}
+                        className="sorterMenuItem"
+                        onClick={() => setSortKey(value)}
+                      >
+                        {value}
+                      </div>
+                    ))}
+                </div>
               </div>
-              <div
-                className="sorterReverser"
-                onClick={() => setReversed((prev) => !prev)}
-              >
-                {reversed ? (
-                  <Image src="/down.svg" alt="down" width={15} height={15} />
-                ) : (
-                  <Image src="/up.svg" alt="up" width={15} height={15} />
+              <div className="filter">
+                <input
+                  className="textInput"
+                  type="text"
+                  value={filter}
+                  onChange={(e) => setFilter(e.target.value)}
+                  placeholder={"Search"}
+                  onKeyDown={(e) => e.key === "Escape" && setFilter("")}
+                />
+                {filter && (
+                  <div
+                    className="filterButton"
+                    onClick={() => {
+                      setFilter("");
+                    }}
+                  >
+                    <Image
+                      src="/close.svg"
+                      alt="close"
+                      width={15}
+                      height={15}
+                    />
+                  </div>
                 )}
               </div>
-
-              <div className={"sorterMenu" + (sorterOpen ? " open" : "")}>
-                {Object.keys(sortKeys)
-                  .filter((value) => value !== sortKey)
-                  .map((value) => (
-                    <div
-                      key={value}
-                      className="sorterMenuItem"
-                      onClick={() => setSortKey(value)}
-                    >
-                      {value}
-                    </div>
-                  ))}
-              </div>
-            </div>
-            <div className="filter">
-              <input
-                className="textInput"
-                type="text"
-                value={filter}
-                onChange={(e) => setFilter(e.target.value)}
-                placeholder={"Search"}
-                onKeyDown={(e) => e.key === "Escape" && setFilter("")}
-              />
-              {filter && (
-                <div
-                  className="filterButton"
-                  onClick={() => {
-                    setFilter("");
-                  }}
-                >
-                  <Image src="/close.svg" alt="close" width={15} height={15} />
-                </div>
-              )}
             </div>
           </div>
           <div className={styles.playlists}>
