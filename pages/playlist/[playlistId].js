@@ -222,7 +222,10 @@ export default function Playlist() {
                 description: body.description,
                 id: body.id,
                 tracks: { total: body.tracks.total },
-                owner: { display_name: body.owner.display_name },
+                owner: {
+                  display_name: body.owner.display_name,
+                  id: body.owner.id,
+                },
                 images: [{ url: body.images[0].url }],
               };
 
@@ -513,13 +516,22 @@ export default function Playlist() {
                   className={styles.image}
                 />
                 <div className={styles.details}>
-                  <div className={styles.name}>{playlist.name}</div>
+                  <div className={styles.title}>{playlist.name}</div>
                   {playlist.description && (
-                    <div className={styles.owner}>{playlist.description}</div>
+                    <div className={styles.subtitle}>
+                      {playlist.description}
+                    </div>
                   )}
-                  <div className={styles.owner}>
-                    {playlist.owner.display_name} - {playlist.tracks.total}{" "}
-                    músicas
+                  <div className={styles.subtitle}>
+                    <span
+                      className={styles.owner}
+                      onClick={() => {
+                        router.replace("/user/" + playlist.owner.id);
+                      }}
+                    >
+                      {playlist.owner.display_name}{" "}
+                    </span>
+                    - {playlist.tracks.total} músicas
                   </div>
                   <div className="sorter">
                     <div
