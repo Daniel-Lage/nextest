@@ -49,6 +49,7 @@ export default function Home() {
             "user-read-playback-state",
             "user-modify-playback-state",
             "user-read-private",
+            "user-read-email",
           ].join(" "),
           redirect_uri: location.origin + "/callback",
         }).toString()
