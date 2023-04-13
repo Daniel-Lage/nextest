@@ -167,6 +167,17 @@ export default function Home() {
       setUserId(localStorage.userId);
 
       getAccessToken((accessToken) => {
+        fetch("https://api.spotify.com/v1/me", {
+          headers: {
+            Authorization: "Bearer " + accessToken,
+          },
+        })
+          .then((response) => response.json())
+          .then((body) => {
+            setUserId(body.id);
+            localStorage.userId = body.id;
+          });
+
         fetch("https://api.spotify.com/v1/me/playlists?limit=50", {
           headers: {
             Authorization: "Bearer " + accessToken,
@@ -178,8 +189,6 @@ export default function Home() {
               console.error(body.error.message);
             } else {
               loadPlaylists(body, []).then((playlists) => {
-                setUserId(playlists[0].owner.id);
-                localStorage.userId = playlists[0].owner.id;
                 playlists = playlists.map(
                   ({
                     name,
