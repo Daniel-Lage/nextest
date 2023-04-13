@@ -25,7 +25,7 @@ export default function Callback() {
         .then((response) => response.json())
         .then((body) => {
           if (body.error) {
-            console.error(body.error_description);
+            console.error(body.error.message);
           } else {
             localStorage.accessToken = body.access_token;
             localStorage.refreshToken = body.refresh_token;
@@ -36,7 +36,7 @@ export default function Callback() {
             localStorage.reversedPlaylists = "false";
             localStorage.sortTracksKey = "Date";
             localStorage.reversedTracks = "false";
-
+            localStorage.userId = "";
             localStorage.expiresAt = (
               body.expires_in * 1000 +
               new Date().getTime()

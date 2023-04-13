@@ -33,7 +33,12 @@ export default function Track({
       </div>
       {vertical || (
         <div className={styles.date}>
-          {date.getDay() + "/" + date.getMonth() + "/" + date.getUTCFullYear()}
+          {date.getDay() +
+            1 +
+            "/" +
+            (date.getMonth() + 1) +
+            "/" +
+            date.getUTCFullYear()}
         </div>
       )}
       <div className={styles.index}>{index}</div>

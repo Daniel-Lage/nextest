@@ -7,8 +7,6 @@ import Head from "next/head";
 import getAccessToken from "@/functions/getAccessToken";
 import shuffleArray from "@/functions/shuffleArray";
 import styles from "@/styles/Playlist.module.css";
-import Filter from "@/components/filter";
-import Sorter from "@/components/sorter";
 import Track from "@/components/track";
 
 const themes = ["blue", "pink", "lime", "mono"];
@@ -113,7 +111,8 @@ export default function Playlist() {
   const [vertical, setVertical] = useState();
   const [theme, setTheme] = useState();
 
-  const [open, setOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [sorterOpen, setSorterOpen] = useState(false);
   const [error, setError] = useState("");
 
   const menu = useRef();
@@ -131,6 +130,7 @@ export default function Playlist() {
         "reversedPlaylists",
         "sortTracksKey",
         "reversedTracks",
+        "userId",
       ].some((value) => localStorage[value] === undefined)
     ) {
       const theme = localStorage.theme;
@@ -138,6 +138,25 @@ export default function Playlist() {
       localStorage.theme = theme;
       router.replace("/");
     } else {
+      onclick = (e) => {
+        if (
+          e.target.className !== "" &&
+          e.target.className !== "menuButton" &&
+          e.target.className !== "menu" &&
+          !e.target.className
+            .split(" ")
+            .some((className) => className === "circle")
+        )
+          setMenuOpen(false);
+
+        if (
+          e.target.className !== "sorterOpener open" &&
+          e.target.className !== "sorterMenu open" &&
+          e.target.className !== "sorterMenuItem"
+        )
+          setSorterOpen(false);
+      };
+
       if (themes.some((t) => t === localStorage.theme)) {
         setTheme(localStorage.theme);
       } else {
@@ -186,20 +205,27 @@ export default function Playlist() {
             },
           })
             .then((response) => response.json())
-            .then((playlist) => {
+            .then((body) => {
+              if (body.error) {
+                setError("Playlist Not Found");
+                return;
+              }
+
               const tracks = {
-                next: playlist.tracks.next,
-                items: playlist.tracks.items,
-                total: playlist.tracks.total,
+                next: body.tracks.next,
+                items: body.tracks.items,
+                total: body.tracks.total,
               };
-              playlist = {
-                name: playlist.name,
-                description: playlist.description,
-                id: playlist.id,
-                tracks: { total: playlist.tracks.total },
-                owner: { display_name: playlist.owner.display_name },
-                images: [{ url: playlist.images[0].url }],
+
+              const playlist = {
+                name: body.name,
+                description: body.description,
+                id: body.id,
+                tracks: { total: body.tracks.total },
+                owner: { display_name: body.owner.display_name },
+                images: [{ url: body.images[0].url }],
               };
+
               setPlaylist(playlist);
 
               if (nextStatus) {
@@ -238,8 +264,8 @@ export default function Playlist() {
   }, [router]);
 
   useEffect(() => {
-    menu.current.style.height = open ? "60px" : "0px";
-  }, [open]);
+    menu.current.style.height = menuOpen ? "60px" : "0px";
+  }, [menuOpen]);
 
   useEffect(() => {
     if (theme) localStorage.theme = theme;
@@ -451,7 +477,10 @@ export default function Playlist() {
           </div>
 
           <div className="right">
-            <div className="button" onClick={() => setOpen((prev) => !prev)}>
+            <div
+              className="button"
+              onClick={() => setMenuOpen((prev) => !prev)}
+            >
               <Image
                 src="/ellipsis.svg"
                 alt="ellipsis"
@@ -492,14 +521,68 @@ export default function Playlist() {
                     {playlist.owner.display_name} - {playlist.tracks.total}{" "}
                     músicas
                   </div>
-                  <Sorter
-                    sortKeys={sortKeys}
-                    sortKey={sortKey}
-                    setSortKey={setSortKey}
-                    reversed={reversed}
-                    setReversed={setReversed}
-                  />
-                  <Filter filter={filter} setFilter={setFilter} />
+                  <div className="sorter">
+                    <div
+                      className={"sorterOpener" + (sorterOpen ? " open" : "")}
+                      onClick={() => setSorterOpen((prev) => !prev)}
+                    >
+                      {sortKey}
+                    </div>
+                    <div
+                      className="sorterReverser"
+                      onClick={() => setReversed((prev) => !prev)}
+                    >
+                      {reversed ? (
+                        <Image
+                          src="/down.svg"
+                          alt="down"
+                          width={15}
+                          height={15}
+                        />
+                      ) : (
+                        <Image src="/up.svg" alt="up" width={15} height={15} />
+                      )}
+                    </div>
+
+                    <div className={"sorterMenu" + (sorterOpen ? " open" : "")}>
+                      {Object.keys(sortKeys)
+                        .filter((value) => value !== sortKey)
+                        .map((value) => (
+                          <div
+                            key={value}
+                            className="sorterMenuItem"
+                            onClick={() => setSortKey(value)}
+                          >
+                            {value}
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                  <div className="filter">
+                    <input
+                      className="textInput"
+                      type="text"
+                      value={filter}
+                      onChange={(e) => setFilter(e.target.value)}
+                      placeholder={"Search"}
+                      onKeyDown={(e) => e.key === "Escape" && setFilter("")}
+                    />
+                    {filter && (
+                      <div
+                        className="filterButton"
+                        onClick={() => {
+                          setFilter("");
+                        }}
+                      >
+                        <Image
+                          src="/close.svg"
+                          alt="close"
+                          width={15}
+                          height={15}
+                        />
+                      </div>
+                    )}
+                  </div>
                   <div className="row">
                     <div className={styles.button} onClick={play}>
                       <Image
@@ -509,7 +592,22 @@ export default function Playlist() {
                         height={25}
                       />
                     </div>
-                    {status === "saved" ? null : (
+                    {status === "saved" ? (
+                      <div
+                        className={styles.button}
+                        onClick={() => {
+                          navigator.clipboard.writeText(location);
+                          setError("Adicionado a área de transferência");
+                        }}
+                      >
+                        <Image
+                          src={"/share.svg"}
+                          alt="heart"
+                          width={25}
+                          height={25}
+                        />
+                      </div>
+                    ) : (
                       <div
                         className={styles.button}
                         onClick={() =>

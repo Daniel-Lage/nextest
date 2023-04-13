@@ -97,7 +97,6 @@ export default function Home() {
   );
 
   const [theme, setTheme] = useState();
-  const [userId, setUserId] = useState("");
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [sorterOpen, setSorterOpen] = useState(false);
@@ -151,11 +150,6 @@ export default function Home() {
         setTheme("blue");
       }
 
-      setPlaylists([
-        ...Object.values(JSON.parse(localStorage.saved)),
-        ...Object.values(JSON.parse(localStorage.liked)),
-      ]);
-
       if (sortKeys[localStorage.sortPlaylistsKey]) {
         setSortKey(localStorage.sortPlaylistsKey);
       } else {
@@ -164,53 +158,49 @@ export default function Home() {
 
       setReversed(JSON.parse(localStorage.reversedPlaylists));
 
-      setUserId(localStorage.userId);
-
-      getAccessToken((accessToken) => {
-        fetch("https://api.spotify.com/v1/me/playlists?limit=50", {
-          headers: {
-            Authorization: "Bearer " + accessToken,
-          },
-        })
-          .then((response) => response.json())
-          .then((body) => {
-            if (body.error) {
-              console.error(body.error.message);
-            } else {
-              loadPlaylists(body, []).then((playlists) => {
-                setUserId(playlists[0].owner.id);
-                localStorage.userId = playlists[0].owner.id;
-                playlists = playlists.map(
-                  ({
-                    name,
-                    description,
-                    id,
-                    tracks: { total },
-                    owner: { display_name },
-                    images,
-                  }) => ({
-                    name,
-                    description,
-                    id,
-                    tracks: { total },
-                    owner: { display_name },
-                    images: [{ url: images[0].url }],
-                  })
-                );
-                setPlaylists([
-                  ...playlists,
-                  ...Object.values(JSON.parse(localStorage.liked)),
-                ]);
-
-                const saved = {};
-                playlists.forEach((playlist) => {
-                  saved[playlist.id] = playlist;
-                });
-                localStorage.saved = JSON.stringify(saved);
-              });
+      const { userId } = router.query;
+      if (userId !== undefined) {
+        getAccessToken((accessToken) => {
+          fetch(
+            "https://api.spotify.com/v1/users/" +
+              userId +
+              "/playlists?limit=50",
+            {
+              headers: {
+                Authorization: "Bearer " + accessToken,
+              },
             }
-          });
-      });
+          )
+            .then((response) => response.json())
+            .then((body) => {
+              if (body.error) {
+                setError("User Not Found");
+                console.error(body.error.message);
+              } else {
+                loadPlaylists(body, []).then((playlists) => {
+                  playlists = playlists.map(
+                    ({
+                      name,
+                      description,
+                      id,
+                      tracks: { total },
+                      owner: { display_name },
+                      images,
+                    }) => ({
+                      name,
+                      description,
+                      id,
+                      tracks: { total },
+                      owner: { display_name },
+                      images: [{ url: images[0].url }],
+                    })
+                  );
+                  setPlaylists(playlists);
+                });
+              }
+            });
+        });
+      }
     }
   }, [router]);
 
@@ -263,13 +253,10 @@ export default function Home() {
             <div
               className="button"
               onClick={() => {
-                const theme = localStorage.theme;
-                localStorage.clear();
-                localStorage.theme = theme;
-                router.replace("/");
+                router.replace("/home");
               }}
             >
-              <Image src="/logout.svg" alt="logout" width={25} height={25} />
+              <Image src="/back.svg" alt="back" width={25} height={25} />
             </div>
           </div>
           <div className="center">
@@ -287,7 +274,7 @@ export default function Home() {
           </div>
           <div className="right">
             <div
-              className="menuButton"
+              className="button"
               onClick={() => setMenuOpen((prev) => !prev)}
             >
               <Image
@@ -365,17 +352,6 @@ export default function Home() {
                   <Image src="/close.svg" alt="close" width={15} height={15} />
                 </div>
               )}
-            </div>
-            <div
-              className="button"
-              onClick={() => {
-                navigator.clipboard.writeText(
-                  location.origin + "/user/" + userId
-                );
-                setError("Adicionado a área de transferência");
-              }}
-            >
-              <Image src={"/share.svg"} alt="heart" width={25} height={25} />
             </div>
           </div>
           <div className={styles.playlists}>

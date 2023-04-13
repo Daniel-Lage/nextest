@@ -123,6 +123,7 @@ a {
   gap: 20px;
 }
 
+.menuButton,
 .button {
   display: flex;
   padding: 10px;
@@ -281,15 +282,17 @@ a {
   width: 160px;
   margin-top: 30px;
   overflow: hidden;
-  background-color: var(--primary);
   max-height: 0px;
+  padding-bottom: 0px;
   text-align: center;
-  transition: max-height 50ms linear;
+  transition: max-height 50ms linear, padding-bottom 50ms linear;
   border-bottom-left-radius: 5px;
   border-bottom-right-radius: 5px;
+  background-color: var(--primary);
 }
 .sorterMenu.open {
   max-height: 200px;
+  padding-bottom: 5px;
 }
 
 .sorterMenuItem {
@@ -297,16 +300,16 @@ a {
   width: 150px;
   margin-top: 5px;
   cursor: pointer;
-  background-color: var(--button);
+  background-color: var(--primary);
   border-radius: 5px;
   user-select: none;
   color: hsl(0, 0%, 100%);
 }
 .sorterMenuItem:hover {
-  background-color: var(--button-hover);
+  background-color: var(--secondary);
 }
 .sorterMenuItem:active {
-  background-color: var(--button-active);
+  background-color: var(--background);
 }
 
 .sorterReverser {
