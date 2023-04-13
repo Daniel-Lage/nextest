@@ -23,6 +23,7 @@
 }
 .owner {
   color: var(--button);
+  cursor: pointer;
 }
 .owner:hover {
   color: var(--button-hover);
