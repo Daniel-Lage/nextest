@@ -274,14 +274,10 @@ export default function Home() {
             <div
               className="button"
               onClick={() => {
-                if (window.history.length < 3) {
-                  router.push("/home");
-                } else {
                   router.back();
-                }
               }}
             >
-              <Image src="/back.svg" alt="back" width={25} height={25} />
+              <Image src="/home.svg" alt="home" width={25} height={25} />
             </div>
           </div>
           <div className="center">

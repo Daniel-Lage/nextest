@@ -458,15 +458,10 @@ export default function Playlist() {
             <div
               className="button"
               onClick={() => {
-                console.log(window.history);
-                if (window.history.length < 3) {
-                  router.push("/home");
-                } else {
-                  router.back();
-                }
+                router.push("/home");
               }}
             >
-              <Image src="/back.svg" alt="back" width={25} height={25} />
+              <Image src="/home.svg" alt="home" width={25} height={25} />
             </div>
           </div>
 
