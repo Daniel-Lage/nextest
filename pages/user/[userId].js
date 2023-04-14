@@ -274,7 +274,7 @@ export default function Home() {
             <div
               className="button"
               onClick={() => {
-                  router.back();
+                router.push("/home");
               }}
             >
               <Image src="/home.svg" alt="home" width={25} height={25} />
