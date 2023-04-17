@@ -28,7 +28,8 @@
   color: var(--button);
   cursor: pointer;
 }
-.owner:hover {
+.owner:hover,
+.owner:focus {
   color: var(--button-hover);
 }
 .owner:active {
@@ -46,7 +47,8 @@
   user-select: none;
   box-shadow: 0px 0px 10px hsla(0, 0%, 0%, 0.3);
 }
-.button:hover {
+.button:hover,
+.button:focus {
   background-color: var(--button-hover);
 }
 .button:active {
@@ -64,7 +66,8 @@
   padding-right: 10px;
   cursor: pointer;
 }
-.track:hover {
+.track:hover,
+.track:focus {
   background-color: var(--primary);
 }
 .track:active {
