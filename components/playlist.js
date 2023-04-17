@@ -45,6 +45,7 @@ export default function Playlist({
     owner: { display_name },
     images,
   },
+  tabIndex,
   setError,
 }) {
   const router = useRouter();
@@ -132,10 +133,20 @@ export default function Playlist({
     });
   }
 
+  function open() {
+    router.push("/playlist/" + id);
+  }
+
   return (
     <div
+      tabIndex={`${tabIndex}`}
       className={styles.playlist}
-      onClick={() => router.push("/playlist/" + id)}
+      onClick={open}
+      onKeyUp={(e) => {
+        if (e.code === "Enter") {
+          open();
+        }
+      }}
     >
       <div
         style={{
@@ -145,7 +156,16 @@ export default function Playlist({
         alt={name + " image"}
         className={styles.image}
       >
-        <div className={styles.button} onClick={play}>
+        <div
+          tabIndex={`${tabIndex + 1}`}
+          className={styles.button}
+          onClick={play}
+          onKeyUp={(e) => {
+            if (e.code === "Enter") {
+              play();
+            }
+          }}
+        >
           <Image src="/play.svg" alt="play" width={25} height={25} />
         </div>
       </div>

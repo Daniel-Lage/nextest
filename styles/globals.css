@@ -5,6 +5,10 @@ body {
   overflow-x: hidden;
 }
 
+* {
+  outline: none;
+}
+
 a {
   color: inherit;
   text-decoration: none;
@@ -123,7 +127,6 @@ a {
   gap: 20px;
 }
 
-.menuButton,
 .button {
   display: flex;
   padding: 10px;
@@ -136,7 +139,8 @@ a {
   gap: 10px;
   box-shadow: 0px 0px 10px hsla(0, 0%, 0%, 0.3);
 }
-.button:hover {
+.button:hover,
+.button:focus {
   background-color: var(--button-hover);
 }
 .button:active {
@@ -168,7 +172,8 @@ a {
   cursor: pointer;
   background-color: var(--button);
 }
-.circle:hover {
+.circle:hover,
+.circle:focus {
   background-color: var(--button-hover);
 }
 .circle:active {
@@ -223,7 +228,6 @@ a {
   border-color: transparent;
   background-color: transparent;
   color: hsl(0, 0%, 100%);
-  outline: none;
 }
 .filterButton {
   display: flex;
@@ -238,7 +242,8 @@ a {
   border-top-right-radius: 5px;
   border-bottom-right-radius: 5px;
 }
-.filterButton:hover {
+.filterButton:hover,
+.filterButton:focus {
   background-color: var(--primary);
 }
 .filterButton:active {
@@ -267,7 +272,8 @@ a {
   border-bottom-left-radius: 0px;
   border-bottom-right-radius: 0px;
 }
-.sorterOpener:hover {
+.sorterOpener:hover,
+.sorterOpener:focus {
   background-color: var(--button-hover);
 }
 .sorterOpener:active {
@@ -305,7 +311,8 @@ a {
   user-select: none;
   color: hsl(0, 0%, 100%);
 }
-.sorterMenuItem:hover {
+.sorterMenuItem:hover,
+.sorterMenuItem:focus {
   background-color: var(--secondary);
 }
 .sorterMenuItem:active {
@@ -323,7 +330,8 @@ a {
   user-select: none;
   border-radius: 100%;
 }
-.sorterReverser:hover {
+.sorterReverser:hover,
+.sorterReverser:focus {
   background-color: var(--button-hover);
 }
 .sorterReverser:active {

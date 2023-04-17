@@ -20,7 +20,8 @@
   box-shadow: 0px 0px 10px hsla(0, 0%, 0%, 0.3);
   background-color: var(--secondary);
 }
-.playlist:hover {
+.playlist:hover,
+.playlist:focus {
   background-color: var(--primary);
 }
 .playlist:active {
@@ -38,7 +39,8 @@
   border-radius: 100%;
   user-select: none;
 }
-.playlist .button:hover {
+.playlist .button:hover,
+.playlist .button:focus {
   background-color: var(--button-hover);
 }
 .playlist .button:active {

@@ -240,6 +240,38 @@ export default function Home() {
       localStorage.reversedPlaylists = JSON.stringify(reversed);
   }, [reversed]);
 
+  function clearError() {
+    setError("");
+  }
+
+  function logout() {
+    const theme = localStorage.theme;
+    localStorage.clear();
+    localStorage.theme = theme;
+    router.replace("/");
+  }
+
+  function switchMenu() {
+    setMenuOpen((prev) => !prev);
+  }
+
+  function switchSorter() {
+    setSorterOpen((prev) => !prev);
+  }
+
+  function reverse() {
+    setReversed((prev) => !prev);
+  }
+
+  function clearFilter() {
+    setFilter("");
+  }
+
+  function share() {
+    navigator.clipboard.writeText(location.origin + "/user/" + userId);
+    setError("Adicionado a área de transferência");
+  }
+
   return (
     <>
       <Head>
@@ -252,9 +284,13 @@ export default function Home() {
           <div className="message">
             {error}
             <div
+              tabIndex="0"
               className="button"
-              onClick={() => {
-                setError("");
+              onClick={clearError}
+              onKeyUp={(e) => {
+                if (e.code === "Enter") {
+                  clearError();
+                }
               }}
             >
               <Image src="/close.svg" alt="close" width={25} height={25} />
@@ -270,12 +306,13 @@ export default function Home() {
         <div className="header">
           <div className="left">
             <div
+              tabIndex="1"
               className="button"
-              onClick={() => {
-                const theme = localStorage.theme;
-                localStorage.clear();
-                localStorage.theme = theme;
-                router.replace("/");
+              onClick={logout}
+              onKeyUp={(e) => {
+                if (e.code === "Enter") {
+                  logout();
+                }
               }}
             >
               <Image src="/logout.svg" alt="logout" width={25} height={25} />
@@ -296,8 +333,14 @@ export default function Home() {
           </div>
           <div className="right">
             <div
-              className="menuButton"
-              onClick={() => setMenuOpen((prev) => !prev)}
+              tabIndex="2"
+              className="button"
+              onClick={switchMenu}
+              onKeyUp={(e) => {
+                if (e.code === "Enter") {
+                  switchMenu();
+                }
+              }}
             >
               <Image
                 src="/ellipsis.svg"
@@ -310,29 +353,52 @@ export default function Home() {
           <div className="menu" ref={menu}>
             {themes
               .filter((t) => t !== theme)
-              .map((theme) => (
-                <div
-                  className={"circle " + theme}
-                  key={theme}
-                  onClick={() => {
-                    setTheme(theme);
-                  }}
-                ></div>
-              ))}
+              .map((theme, index) => {
+                function chooseTheme() {
+                  setTheme(theme);
+                }
+                return (
+                  <div
+                    tabIndex={menuOpen ? `${3 + index}` : null}
+                    className={"circle " + theme}
+                    key={theme}
+                    onClick={chooseTheme}
+                    onKeyUp={(e) => {
+                      if (e.code === "Enter") {
+                        chooseTheme();
+                      }
+                    }}
+                  ></div>
+                );
+              })}
           </div>
         </div>
         <div className="body">
           <div className="subheader">
             <div className="sorter">
               <div
+                tabIndex={`${3 + themes.length}`}
                 className={"sorterOpener" + (sorterOpen ? " open" : "")}
-                onClick={() => setSorterOpen((prev) => !prev)}
+                onClick={switchSorter}
+                onKeyUp={(e) => {
+                  if (e.code === "Enter") {
+                    switchSorter();
+                  }
+                }}
+                onFocus={() => setMenuOpen(false)}
               >
                 {sortKey}
               </div>
               <div
+                tabIndex={`${4 + themes.length + Object.keys(sortKeys).length}`}
                 className="sorterReverser"
-                onClick={() => setReversed((prev) => !prev)}
+                onClick={reverse}
+                onKeyUp={(e) => {
+                  if (e.code === "Enter") {
+                    reverse();
+                  }
+                }}
+                onFocus={() => setSorterOpen(false)}
               >
                 {reversed ? (
                   <Image src="/down.svg" alt="down" width={15} height={15} />
@@ -344,31 +410,51 @@ export default function Home() {
               <div className={"sorterMenu" + (sorterOpen ? " open" : "")}>
                 {Object.keys(sortKeys)
                   .filter((value) => value !== sortKey)
-                  .map((value) => (
-                    <div
-                      key={value}
-                      className="sorterMenuItem"
-                      onClick={() => setSortKey(value)}
-                    >
-                      {value}
-                    </div>
-                  ))}
+                  .map((value, index) => {
+                    function chooseSortKey() {
+                      setSortKey(value);
+                    }
+                    return (
+                      <div
+                        tabIndex={
+                          sorterOpen ? `${4 + themes.length + index}` : null
+                        }
+                        key={value}
+                        className="sorterMenuItem"
+                        onClick={chooseSortKey}
+                        onKeyUp={(e) => {
+                          if (e.code === "Enter") {
+                            chooseSortKey();
+                          }
+                        }}
+                      >
+                        {value}
+                      </div>
+                    );
+                  })}
               </div>
             </div>
             <div className="filter">
               <input
+                tabIndex={`${5 + themes.length + Object.keys(sortKeys).length}`}
                 className="textInput"
                 type="text"
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
                 placeholder={"Search"}
-                onKeyDown={(e) => e.key === "Escape" && setFilter("")}
+                onKeyDown={(e) => e.code === "Escape" && setFilter("")}
               />
               {filter && (
                 <div
+                  tabIndex={`${
+                    6 + themes.length + Object.keys(sortKeys).length
+                  }`}
                   className="filterButton"
-                  onClick={() => {
-                    setFilter("");
+                  onClick={clearFilter}
+                  onKeyUp={(e) => {
+                    if (e.code === "Enter") {
+                      clearFilter();
+                    }
                   }}
                 >
                   <Image src="/close.svg" alt="close" width={15} height={15} />
@@ -376,20 +462,24 @@ export default function Home() {
               )}
             </div>
             <div
+              tabIndex={`${7 + themes.length + Object.keys(sortKeys).length}`}
               className="button"
-              onClick={() => {
-                navigator.clipboard.writeText(
-                  location.origin + "/user/" + userId
-                );
-                setError("Adicionado a área de transferência");
+              onClick={share}
+              onKeyUp={(e) => {
+                if (e.code === "Enter") {
+                  share();
+                }
               }}
             >
               <Image src={"/share.svg"} alt="heart" width={25} height={25} />
             </div>
           </div>
           <div className={styles.playlists}>
-            {sortedPlaylists.map((playlist) => (
+            {sortedPlaylists.map((playlist, index) => (
               <Playlist
+                tabIndex={
+                  8 + themes.length + Object.keys(sortKeys).length + index * 2
+                }
                 playlist={playlist}
                 key={playlist.id}
                 setError={setError}
