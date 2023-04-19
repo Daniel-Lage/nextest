@@ -6,7 +6,7 @@ import Head from "next/head";
 
 const themes = ["blue", "pink", "lime", "mono"];
 
-export default function () {
+export default function StartPage() {
   const [params, setParams] = useState();
 
   const [theme, setTheme] = useState();

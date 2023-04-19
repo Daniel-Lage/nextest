@@ -73,7 +73,7 @@ async function loadPlaylists(playlists, temp) {
   return temp;
 }
 
-export default function () {
+export default function HomePage() {
   const [playlists, setPlaylists] = useState([]);
 
   const [filter, setFilter] = useState("");

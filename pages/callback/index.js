@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
 
-export default function () {
+export default function CallbackPage() {
   const router = useRouter();
 
   useEffect(() => {

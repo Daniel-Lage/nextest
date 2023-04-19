@@ -74,7 +74,7 @@ async function loadPlaylists(playlists, temp) {
   return temp;
 }
 
-export default function () {
+export default function UserPage() {
   const [user, setUser] = useState();
   const [playlists, setPlaylists] = useState([]);
 

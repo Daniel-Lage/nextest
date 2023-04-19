@@ -9,6 +9,7 @@ import shuffleArray from "@/functions/shuffleArray";
 import Header from "@/components/header";
 import Track from "@/components/track";
 import Playlist from "@/components/playlist";
+import Modal from "@/components/modal";
 
 const themes = ["blue", "pink", "lime", "mono"];
 
@@ -79,7 +80,7 @@ async function loadTracks(tracks, temp) {
   return temp.filter((value) => value.track);
 }
 
-export default function () {
+export default function PlaylistPage() {
   const [playlist, setPlaylist] = useState();
   const [tracks, setTracks] = useState([]);
   const [status, setStatus] = useState(null); // "saved", "liked", or null
