@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
 
-export default function Callback() {
+export default function () {
   const router = useRouter();
 
   useEffect(() => {
@@ -50,7 +50,7 @@ export default function Callback() {
   return (
     <>
       <Head>
-        <title>Loading... - Spotify Helper 2.0</title>
+        <title>Loading... - Spotify Helper</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>

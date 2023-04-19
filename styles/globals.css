@@ -5,10 +5,6 @@ body {
   overflow-x: hidden;
 }
 
-* {
-  outline: none;
-}
-
 a {
   color: inherit;
   text-decoration: none;
@@ -26,61 +22,55 @@ a {
   height: 100vh;
   color: hsl(0, 0%, 100%);
   --background: hsl(0, 0%, 10%);
+  --item: hsl(0, 0%, 15%);
+  --item-hover: hsl(0, 0%, 30%);
+  --item-active: hsl(0, 0%, 40%);
 }
-.error {
+.modalOpen {
   filter: grayscale(50%) brightness(0.5);
   pointer-events: none;
 }
 .loading {
-  --text: var(--background);
-  --primary: var(--background);
-  --secondary: var(--background);
-  --button: var(--background);
-  --button-hover: var(--background);
-  --button-active: var(--background);
+  display: none;
 }
+
 .blue {
-  --primary: hsl(220, 30%, 30%);
-  --secondary: hsl(220, 20%, 20%);
-  --active: hsl(220, 40%, 40%);
-  --button: hsl(220, 60%, 40%);
-  --button-hover: hsl(220, 65%, 45%);
-  --button-active: hsl(220, 70%, 50%);
+  --hue: 220;
 }
+
 .pink {
-  --primary: hsl(325, 30%, 30%);
-  --secondary: hsl(325, 20%, 20%);
-  --active: hsl(325, 40%, 40%);
-  --button: hsl(325, 60%, 40%);
-  --button-hover: hsl(325, 65%, 45%);
-  --button-active: hsl(325, 70%, 50%);
+  --hue: 325;
 }
+
 .lime {
-  --primary: hsl(120, 30%, 30%);
-  --secondary: hsl(120, 20%, 20%);
-  --active: hsl(120, 40%, 40%);
-  --button: hsl(120, 60%, 40%);
-  --button-hover: hsl(120, 65%, 45%);
-  --button-active: hsl(120, 70%, 50%);
+  --hue: 120;
 }
+
+.blue,
+.pink,
+.lime {
+  --primary: hsl(var(--hue), 30%, 25%);
+  --secondary: hsl(var(--hue), 30%, 15%);
+  --button: hsl(var(--hue), 60%, 50%);
+  --button-hover: hsl(var(--hue), 60%, 60%);
+  --button-active: hsl(var(--hue), 60%, 70%);
+}
+
 .mono {
-  --background: hsl(0, 0%, 10%);
-  --primary: hsl(120, 0%, 25%);
-  --secondary: hsl(120, 0%, 20%);
-  --active: hsl(120, 0%, 30%);
-  --button: hsl(120, 0%, 40%);
-  --button-hover: hsl(120, 0%, 45%);
-  --button-active: hsl(120, 0%, 50%);
+  --primary: hsl(0, 0%, 25%);
+  --secondary: hsl(0, 0%, 15%);
+  --button: hsl(0, 0%, 50%);
+  --button-hover: hsl(0, 0%, 60%);
+  --button-active: hsl(0, 0%, 70%);
 }
 
 .header {
   display: flex;
-  height: 65px;
+  height: 50px;
   width: 100vw;
   justify-content: flex-end;
   align-items: center;
   background-color: var(--primary);
-  box-shadow: 0px 5px 5px hsla(0, 0%, 0%, 0.2);
   z-index: 2;
 }
 .left {
@@ -115,6 +105,25 @@ a {
   border-radius: 5px;
 }
 
+.headerButton {
+  display: flex;
+  width: 35px;
+  aspect-ratio: 1;
+  border-radius: 100%;
+  background-color: var(--button);
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+}
+.headerButton:hover,
+.headerButton:focus-visible {
+  background-color: var(--button-hover);
+}
+.headerButton:active {
+  background-color: var(--button-active);
+}
+
 .body {
   display: flex;
   flex-direction: column;
@@ -122,9 +131,9 @@ a {
   align-items: center;
   flex: 1;
   background-color: var(--background);
+  gap: 10px;
   overflow-y: scroll;
   overflow-x: hidden;
-  gap: 20px;
 }
 
 .button {
@@ -140,40 +149,45 @@ a {
   box-shadow: 0px 0px 10px hsla(0, 0%, 0%, 0.3);
 }
 .button:hover,
-.button:focus {
+.button:focus-visible {
   background-color: var(--button-hover);
 }
 .button:active {
   background-color: var(--button-active);
 }
 
-.menu {
+.colorPicker {
+  position: absolute;
+  top: 50px;
+  right: 0px;
   display: flex;
   align-items: center;
   justify-content: center;
-  position: absolute;
   align-self: flex-end;
   background-color: var(--primary);
   overflow: hidden;
   padding-left: 10px;
   padding-right: 10px;
-  gap: 10px;
-  top: 65px;
-  height: 0px;
-  transition: height 50ms ease-in-out;
+  max-height: 0px;
+  transition: max-height 50ms linear;
   border-bottom-left-radius: 5px;
   box-shadow: 0px 5px 5px hsla(0, 0%, 0%, 0.2);
 }
+.colorPicker.open {
+  max-height: 200px;
+  padding-bottom: 5px;
+}
 
 .circle {
-  width: 50px;
-  height: 50px;
+  margin: 5px;
+  width: 40px;
+  aspect-ratio: 1;
   border-radius: 100%;
   cursor: pointer;
   background-color: var(--button);
 }
 .circle:hover,
-.circle:focus {
+.circle:focus-visible {
   background-color: var(--button-hover);
 }
 .circle:active {
@@ -205,36 +219,61 @@ a {
 
 .subheader {
   display: flex;
+  width: 100vw;
+  padding-top: 10px;
+  padding-bottom: 10px;
   justify-content: center;
-  width: 100%;
   gap: 10px;
   align-items: center;
   background-color: var(--secondary);
-  padding: 20px;
+  left: 0px;
   flex-wrap: wrap;
   z-index: 1;
-  box-shadow: 0px 5px 5px hsla(0, 0%, 0%, 0.2);
+}
+.subheaderButton {
+  display: flex;
+  width: 25px;
+  aspect-ratio: 1;
+  border-radius: 100%;
+  background-color: var(--button);
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+}
+.subheaderButton:hover,
+.subheaderButton:focus-visible {
+  background-color: var(--button-hover);
+}
+.subheaderButton:active {
+  background-color: var(--button-active);
 }
 
 .filter {
   display: flex;
-  width: 200px;
-  height: 30px;
+  width: 160px;
+  height: 25px;
   background-color: var(--background);
   border-radius: 5px;
 }
+.filter:focus-within {
+  outline: auto;
+}
+
 .textInput {
-  flex: 1;
-  border-color: transparent;
+  width: 130px;
+  height: 25px;
+  padding-left: 5px;
+  border: 0;
   background-color: transparent;
   color: hsl(0, 0%, 100%);
+  outline: none;
 }
 .filterButton {
   display: flex;
-  width: 30px;
-  height: 28px;
-  background-color: var(--secondary);
-  border: 1px solid var(--background);
+  width: 25px;
+  height: 25px;
+  background-color: var(--item);
   align-items: center;
   justify-content: center;
   cursor: pointer;
@@ -243,22 +282,20 @@ a {
   border-bottom-right-radius: 5px;
 }
 .filterButton:hover,
-.filterButton:focus {
-  background-color: var(--primary);
+.filterButton:focus-visible {
+  background-color: var(--item-hover);
 }
 .filterButton:active {
-  background-color: var(--active);
+  background-color: var(--item-active);
 }
 
 .sorter {
   display: flex;
-  width: 200px;
-  height: 30px;
-  gap: 10px;
   justify-content: flex-start;
 }
 .sorterOpener {
-  flex: 1;
+  width: 160px;
+  height: 25px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -266,14 +303,14 @@ a {
   user-select: none;
   background-color: var(--button);
   border-radius: 5px;
-  color: hsl(0, 0%, 100%);
+  color: black;
 }
 .sorterOpener.open {
   border-bottom-left-radius: 0px;
   border-bottom-right-radius: 0px;
 }
 .sorterOpener:hover,
-.sorterOpener:focus {
+.sorterOpener:focus-visible {
   background-color: var(--button-hover);
 }
 .sorterOpener:active {
@@ -286,19 +323,18 @@ a {
   flex-direction: column;
   align-items: center;
   width: 160px;
-  margin-top: 30px;
+  margin-top: 25px;
   overflow: hidden;
   max-height: 0px;
   padding-bottom: 0px;
   text-align: center;
-  transition: max-height 50ms linear, padding-bottom 50ms linear;
+  transition: max-height 50ms linear;
   border-bottom-left-radius: 5px;
   border-bottom-right-radius: 5px;
   background-color: var(--primary);
 }
 .sorterMenu.open {
   max-height: 200px;
-  padding-bottom: 5px;
 }
 
 .sorterMenuItem {
@@ -306,34 +342,19 @@ a {
   width: 150px;
   margin-top: 5px;
   cursor: pointer;
-  background-color: var(--primary);
+  background-color: var(--item);
   border-radius: 5px;
   user-select: none;
   color: hsl(0, 0%, 100%);
 }
 .sorterMenuItem:hover,
-.sorterMenuItem:focus {
-  background-color: var(--secondary);
+.sorterMenuItem:focus-visible {
+  background-color: var(--item-hover);
 }
 .sorterMenuItem:active {
-  background-color: var(--background);
+  background-color: var(--item-active);
 }
 
-.sorterReverser {
-  display: flex;
-  width: 30px;
-  height: 30px;
-  background-color: var(--button);
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  user-select: none;
-  border-radius: 100%;
-}
-.sorterReverser:hover,
-.sorterReverser:focus {
-  background-color: var(--button-hover);
-}
-.sorterReverser:active {
-  background-color: var(--button-active);
+.sorterMenuItem:last-child {
+  margin-bottom: 5px;
 }

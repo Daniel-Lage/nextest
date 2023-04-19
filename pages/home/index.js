@@ -1,14 +1,18 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { useRouter } from "next/router";
-import Image from "next/image";
 import Head from "next/head";
 
-import getAccessToken from "@/functions/getAccessToken";
 import styles from "@/styles/Home.module.css";
-import Playlist from "@/components/playlist";
 
-const themes = ["blue", "pink", "lime", "mono"];
+import getAccessToken from "@/functions/getAccessToken";
+
+import PlaylistIcon from "@/components/playlistIcon";
+import ButtonSvg from "@/components/buttonSvg";
+import Filter from "@/components/filter";
+import Header from "@/components/header";
+import Sorter from "@/components/sorter";
+import Modal from "@/components/modal";
 
 const sortKeys = {
   Criador: (a, b) => {
@@ -69,7 +73,7 @@ async function loadPlaylists(playlists, temp) {
   return temp;
 }
 
-export default function Home() {
+export default function () {
   const [playlists, setPlaylists] = useState([]);
 
   const [filter, setFilter] = useState("");
@@ -99,11 +103,8 @@ export default function Home() {
   const [theme, setTheme] = useState();
   const [userId, setUserId] = useState("");
 
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [sorterOpen, setSorterOpen] = useState(false);
-  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
 
-  const menu = useRef();
   const router = useRouter();
 
   useEffect(() => {
@@ -126,31 +127,6 @@ export default function Home() {
       localStorage.theme = theme;
       router.replace("/");
     } else {
-      onclick = (e) => {
-        if (
-          e.target.className !== "" &&
-          e.target.className !== "menuButton" &&
-          e.target.className !== "menu" &&
-          !e.target.className
-            .split(" ")
-            .some((className) => className === "circle")
-        )
-          setMenuOpen(false);
-
-        if (
-          e.target.className !== "sorterOpener open" &&
-          e.target.className !== "sorterMenu open" &&
-          e.target.className !== "sorterMenuItem"
-        )
-          setSorterOpen(false);
-      };
-
-      if (themes.some((t) => t === localStorage.theme)) {
-        setTheme(localStorage.theme);
-      } else {
-        setTheme("blue");
-      }
-
       setPlaylists([
         ...Object.values(JSON.parse(localStorage.saved)),
         ...Object.values(JSON.parse(localStorage.liked)),
@@ -203,9 +179,10 @@ export default function Home() {
                     id,
                     tracks: { total },
                     owner: { display_name },
-                    images: [{ url: images[0].url }],
+                    images: [images[0] ? { url: images[0].url } : undefined],
                   })
                 );
+
                 setPlaylists([
                   ...playlists,
                   ...Object.values(JSON.parse(localStorage.liked)),
@@ -224,10 +201,6 @@ export default function Home() {
   }, [router]);
 
   useEffect(() => {
-    menu.current.style.height = menuOpen ? "60px" : "0px";
-  }, [menuOpen]);
-
-  useEffect(() => {
     if (theme) localStorage.theme = theme;
   }, [theme]);
 
@@ -241,7 +214,7 @@ export default function Home() {
   }, [reversed]);
 
   function clearError() {
-    setError("");
+    setMessage("");
   }
 
   function logout() {
@@ -249,14 +222,6 @@ export default function Home() {
     localStorage.clear();
     localStorage.theme = theme;
     router.replace("/");
-  }
-
-  function switchMenu() {
-    setMenuOpen((prev) => !prev);
-  }
-
-  function switchSorter() {
-    setSorterOpen((prev) => !prev);
   }
 
   function reverse() {
@@ -267,222 +232,68 @@ export default function Home() {
     setFilter("");
   }
 
-  function share() {
+  function share(e) {
     navigator.clipboard.writeText(location.origin + "/user/" + userId);
-    setError("Adicionado a área de transferência");
+    e.target.blur();
+    setMessage("Adicionado a área de transferência");
   }
 
   return (
     <>
       <Head>
-        <title>Página Inicial - Spotify Helper 2.0</title>
+        <title>Página Inicial - Spotify Helper</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      {error && (
-        <div className={"modal " + (theme || "loading")}>
-          <div className="message">
-            {error}
-            <div
-              tabIndex="0"
-              className="button"
-              onClick={clearError}
-              onKeyUp={(e) => {
-                if (e.code === "Enter") {
-                  clearError();
-                }
-              }}
-            >
-              <Image src="/close.svg" alt="close" width={25} height={25} />
-            </div>
-          </div>
-        </div>
-      )}
+      {message && <Modal {...{ theme, message, clearError }} />}
       <div
-        className={["container ", theme || "loading", error && "error"].join(
-          " "
-        )}
+        className={[
+          "container ",
+          theme || "loading",
+          message && "modalOpen",
+        ].join(" ")}
       >
-        <div className="header">
-          <div className="left">
-            <div
-              tabIndex="1"
-              className="button"
-              onClick={logout}
-              onKeyUp={(e) => {
-                if (e.code === "Enter") {
-                  logout();
-                }
-              }}
-            >
-              <Image src="/logout.svg" alt="logout" width={25} height={25} />
-            </div>
-          </div>
-          <div className="center">
-            <Image
-              src="/favicon.ico"
-              alt="favicon"
-              width={50}
-              height={50}
-              className="logo"
-            />
-            <div className="title">
-              <div>Spotify</div>
-              <div>Helper</div>
-            </div>
-          </div>
-          <div className="right">
-            <div
-              tabIndex="2"
-              className="button"
-              onClick={switchMenu}
-              onKeyUp={(e) => {
-                if (e.code === "Enter") {
-                  switchMenu();
-                }
-              }}
-            >
-              <Image
-                src="/ellipsis.svg"
-                alt="ellipsis"
-                width={25}
-                height={25}
-              />
-            </div>
-          </div>
-          <div className="menu" ref={menu}>
-            {themes
-              .filter((t) => t !== theme)
-              .map((theme, index) => {
-                function chooseTheme() {
-                  setTheme(theme);
-                }
-                return (
-                  <div
-                    tabIndex={menuOpen ? `${3 + index}` : null}
-                    className={"circle " + theme}
-                    key={theme}
-                    onClick={chooseTheme}
-                    onKeyUp={(e) => {
-                      if (e.code === "Enter") {
-                        chooseTheme();
-                      }
-                    }}
-                  ></div>
-                );
-              })}
+        <Header home exit={logout} {...{ theme, setTheme }} />
+        <div className="subheader">
+          <Sorter
+            tabIndex={7}
+            {...{
+              sortKey,
+              reverse,
+              reversed,
+              sortKeys,
+              setSortKey,
+            }}
+          />
+          <Filter
+            tabIndex={9 + Object.keys(sortKeys).length}
+            {...{
+              filter,
+              setFilter,
+              clearFilter,
+            }}
+          />
+          <div
+            tabIndex={`${11 + Object.keys(sortKeys).length}`}
+            className="subheaderButton"
+            onClick={share}
+            onKeyUp={(e) => {
+              if (e.code === "Enter") {
+                share(e);
+              }
+            }}
+          >
+            <ButtonSvg name="share" size={15} />
           </div>
         </div>
         <div className="body">
-          <div className="subheader">
-            <div className="sorter">
-              <div
-                tabIndex={`${3 + themes.length}`}
-                className={"sorterOpener" + (sorterOpen ? " open" : "")}
-                onClick={switchSorter}
-                onKeyUp={(e) => {
-                  if (e.code === "Enter") {
-                    switchSorter();
-                  }
-                }}
-                onFocus={() => setMenuOpen(false)}
-              >
-                {sortKey}
-              </div>
-              <div
-                tabIndex={`${4 + themes.length + Object.keys(sortKeys).length}`}
-                className="sorterReverser"
-                onClick={reverse}
-                onKeyUp={(e) => {
-                  if (e.code === "Enter") {
-                    reverse();
-                  }
-                }}
-                onFocus={() => setSorterOpen(false)}
-              >
-                {reversed ? (
-                  <Image src="/down.svg" alt="down" width={15} height={15} />
-                ) : (
-                  <Image src="/up.svg" alt="up" width={15} height={15} />
-                )}
-              </div>
-
-              <div className={"sorterMenu" + (sorterOpen ? " open" : "")}>
-                {Object.keys(sortKeys)
-                  .filter((value) => value !== sortKey)
-                  .map((value, index) => {
-                    function chooseSortKey() {
-                      setSortKey(value);
-                    }
-                    return (
-                      <div
-                        tabIndex={
-                          sorterOpen ? `${4 + themes.length + index}` : null
-                        }
-                        key={value}
-                        className="sorterMenuItem"
-                        onClick={chooseSortKey}
-                        onKeyUp={(e) => {
-                          if (e.code === "Enter") {
-                            chooseSortKey();
-                          }
-                        }}
-                      >
-                        {value}
-                      </div>
-                    );
-                  })}
-              </div>
-            </div>
-            <div className="filter">
-              <input
-                tabIndex={`${5 + themes.length + Object.keys(sortKeys).length}`}
-                className="textInput"
-                type="text"
-                value={filter}
-                onChange={(e) => setFilter(e.target.value)}
-                placeholder={"Search"}
-                onKeyDown={(e) => e.code === "Escape" && setFilter("")}
-              />
-              {filter && (
-                <div
-                  tabIndex={`${
-                    6 + themes.length + Object.keys(sortKeys).length
-                  }`}
-                  className="filterButton"
-                  onClick={clearFilter}
-                  onKeyUp={(e) => {
-                    if (e.code === "Enter") {
-                      clearFilter();
-                    }
-                  }}
-                >
-                  <Image src="/close.svg" alt="close" width={15} height={15} />
-                </div>
-              )}
-            </div>
-            <div
-              tabIndex={`${7 + themes.length + Object.keys(sortKeys).length}`}
-              className="button"
-              onClick={share}
-              onKeyUp={(e) => {
-                if (e.code === "Enter") {
-                  share();
-                }
-              }}
-            >
-              <Image src={"/share.svg"} alt="heart" width={25} height={25} />
-            </div>
-          </div>
           <div className={styles.playlists}>
             {sortedPlaylists.map((playlist, index) => (
-              <Playlist
-                tabIndex={
-                  8 + themes.length + Object.keys(sortKeys).length + index * 2
-                }
+              <PlaylistIcon
+                tabIndex={12 + Object.keys(sortKeys).length + index * 2}
                 playlist={playlist}
                 key={playlist.id}
-                setError={setError}
+                setMessage={setMessage}
               />
             ))}
           </div>

@@ -1,181 +1,129 @@
-import { useRouter } from "next/router";
-import Image from "next/image";
+import styles from "@/styles/Playlist.module.css";
 
-import getAccessToken from "@/functions/getAccessToken";
-import shuffleArray from "@/functions/shuffleArray";
-import styles from "@/styles/Home.module.css";
-
-async function loadTracks(tracks, temp) {
-  temp = [...temp, ...tracks.items];
-
-  if (tracks.next) {
-    const url = new URL(tracks.next);
-    const baseURL = url.origin + url.pathname;
-    const requests = [];
-
-    for (let offset = 50; offset < tracks.total; offset += 50) {
-      requests.push(
-        fetch(baseURL + "?limit=50&offset=" + offset, {
-          headers: {
-            Authorization: "Bearer " + localStorage.accessToken,
-          },
-        })
-      );
-    }
-
-    const responses = await Promise.all(requests);
-
-    const bodies = await Promise.all(
-      responses.map((response) => response.json())
-    );
-
-    bodies.forEach((body) => {
-      temp = [...temp, ...body.items];
-    });
-  }
-
-  return temp;
-}
+import Filter from "./filter";
+import Sorter from "./sorter";
+import ButtonSvg from "./buttonSvg";
 
 export default function Playlist({
-  playlist: {
-    name,
-    description,
-    id,
-    owner: { display_name },
-    images,
-  },
-  tabIndex,
-  setError,
+  playlist,
+  sortKey,
+  sortKeys,
+  reverse,
+  open,
+  reversed,
+  setSortKey,
+  filter,
+  setFilter,
+  play,
+  status,
+  switchLiked,
+  vertical,
 }) {
-  const router = useRouter();
-
-  function play(e) {
-    e.stopPropagation();
-    getAccessToken((accessToken) => {
-      fetch("https://api.spotify.com/v1/me/player", {
-        headers: {
-          Authorization: "Bearer " + accessToken,
-        },
-      })
-        .then((response) => {
-          if (response.status === 200) return response.json();
-        })
-        .then((body) => {
-          if (body === undefined) {
-            return setError("Cant find active spotify device");
-          }
-
-          const deviceId = body.device.id;
-
-          fetch(`https://api.spotify.com/v1/playlists/${id}/tracks`, {
-            headers: {
-              Authorization: "Bearer " + accessToken,
-            },
-          })
-            .then((response) => response.json())
-            .then((body) => {
-              if (body.error) {
-                console.error(body.error_description);
-              } else {
-                loadTracks(body, []).then((tracks) => {
-                  const shuffledTracks = shuffleArray(tracks).map(
-                    (value) => value.track.uri
-                  );
-
-                  fetch(
-                    "https://api.spotify.com/v1/me/player/queue?" +
-                      new URLSearchParams({
-                        uri: shuffledTracks.pop(),
-                        device_id: deviceId,
-                      }).toString(),
-                    {
-                      method: "POST",
-                      headers: {
-                        Authorization: "Bearer " + localStorage.accessToken,
-                      },
-                    }
-                  ).then(() => {
-                    fetch(
-                      "https://api.spotify.com/v1/me/player/next?" +
-                        new URLSearchParams({
-                          device_id: deviceId,
-                        }).toString(),
-                      {
-                        method: "POST",
-                        headers: {
-                          Authorization: "Bearer " + localStorage.accessToken,
-                        },
-                      }
-                    ).then(() => {
-                      shuffledTracks.forEach((track) => {
-                        fetch(
-                          "https://api.spotify.com/v1/me/player/queue?" +
-                            new URLSearchParams({
-                              uri: track,
-                              device_id: deviceId,
-                            }).toString(),
-                          {
-                            method: "POST",
-                            headers: {
-                              Authorization:
-                                "Bearer " + localStorage.accessToken,
-                            },
-                          }
-                        );
-                      });
-                    });
-                  });
-                });
-              }
-            });
-        });
-    });
+  function clearFilter() {
+    setFilter("");
   }
 
-  function open() {
-    router.push("/playlist/" + id);
+  function share() {
+    navigator.clipboard.writeText(location);
+    e.target.blur();
+    setMessage("Adicionado a área de transferência");
   }
 
   return (
-    <div
-      tabIndex={`${tabIndex}`}
-      className={styles.playlist}
-      onClick={open}
-      onKeyUp={(e) => {
-        if (e.code === "Enter") {
-          open();
-        }
-      }}
-    >
-      <div
-        style={{
-          backgroundImage: `url(${images[0].url})`,
-          backgroundSize: "150px 150px",
-        }}
-        alt={name + " image"}
-        className={styles.image}
-      >
-        <div
-          tabIndex={`${tabIndex + 1}`}
-          className={styles.button}
-          onClick={play}
-          onKeyUp={(e) => {
-            if (e.code === "Enter") {
-              play();
-            }
-          }}
-        >
-          <Image src="/play.svg" alt="play" width={25} height={25} />
-        </div>
-      </div>
-
-      <div className={styles.details}>
-        <div className={styles.text}>
-          <div className={styles.name}>{name}</div>
-          {description || "de " + display_name}
-        </div>
-      </div>
+    <div className="subheader">
+      {playlist && (
+        <>
+          <img
+            src={playlist.images[0].url}
+            alt={playlist.name + " image"}
+            className={styles.image}
+          />
+          <div
+            className={styles.details + (vertical ? " " + styles.vertical : "")}
+          >
+            <div className={styles.title}>{playlist.name}</div>
+            {playlist.description && (
+              <div className={styles.subtitle}>{playlist.description}</div>
+            )}
+            <div className={styles.subtitle}>
+              <span
+                tabIndex={"3"}
+                className={styles.owner}
+                onClick={open}
+                onKeyUp={(e) => {
+                  if (e.code === "Enter") {
+                    open();
+                  }
+                }}
+              >
+                {playlist.owner.display_name}
+              </span>
+              - {playlist.tracks.total} músicas
+            </div>
+            <Sorter
+              tabIndex={4}
+              {...{
+                sortKey,
+                reverse,
+                reversed,
+                sortKeys,
+                setSortKey,
+              }}
+            />
+            <Filter
+              tabIndex={5 + Object.keys(sortKeys).length}
+              {...{
+                filter,
+                setFilter,
+                clearFilter,
+              }}
+            />
+            <div className="row">
+              <div
+                tabIndex={`${6 + Object.keys(sortKeys).length}`}
+                className="headerButton"
+                onClick={play}
+                onKeyUp={(e) => {
+                  if (e.code === "Enter") {
+                    play(e);
+                  }
+                }}
+              >
+                <ButtonSvg name="play" size={20} />
+              </div>
+              {status === "saved" || (
+                <div
+                  tabIndex={`${7 + Object.keys(sortKeys).length}`}
+                  className="headerButton"
+                  onClick={switchLiked}
+                  onKeyUp={(e) => {
+                    if (e.code === "Enter") {
+                      switchLiked();
+                    }
+                  }}
+                >
+                  <ButtonSvg
+                    name={status === "liked" ? "heart-filled" : "heart-outline"}
+                    size={20}
+                  />
+                </div>
+              )}
+              <div
+                tabIndex={`${8 + Object.keys(sortKeys).length}`}
+                className="headerButton"
+                onClick={share}
+                onKeyUp={(e) => {
+                  if (e.code === "Enter") {
+                    share(e);
+                  }
+                }}
+              >
+                <ButtonSvg name="share" size={20} />
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

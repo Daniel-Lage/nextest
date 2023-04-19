@@ -6,7 +6,7 @@ import Head from "next/head";
 
 const themes = ["blue", "pink", "lime", "mono"];
 
-export default function Home() {
+export default function () {
   const [params, setParams] = useState();
 
   const [theme, setTheme] = useState();
@@ -68,7 +68,7 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>Spotify Helper 2.0</title>
+        <title>Spotify Helper</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>

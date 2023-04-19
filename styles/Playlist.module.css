@@ -1,11 +1,11 @@
 .details {
   display: flex;
-  padding: 30px;
-  padding-top: 10px;
-  padding-bottom: 10px;
   flex-direction: column;
-  width: 400px;
   gap: 10px;
+}
+.vertical {
+  padding-left: 30px;
+  padding-right: 30px;
 }
 
 .image {
@@ -20,7 +20,7 @@
 .subtitle {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 4px;
   font-size: 15px;
   font-weight: 700;
 }
@@ -29,7 +29,7 @@
   cursor: pointer;
 }
 .owner:hover,
-.owner:focus {
+.owner:focus-visible {
   color: var(--button-hover);
 }
 .owner:active {
@@ -48,7 +48,7 @@
   box-shadow: 0px 0px 10px hsla(0, 0%, 0%, 0.3);
 }
 .button:hover,
-.button:focus {
+.button:focus-visible {
   background-color: var(--button-hover);
 }
 .button:active {
@@ -59,7 +59,7 @@
   width: 90%;
   display: flex;
   align-items: center;
-  background-color: var(--secondary);
+  background-color: var(--item);
   box-shadow: 0px 0px 10px hsla(0, 0%, 0%, 0.3);
   border-radius: 5px;
   user-select: none;
@@ -67,16 +67,16 @@
   cursor: pointer;
 }
 .track:hover,
-.track:focus {
-  background-color: var(--primary);
+.track:focus-visible {
+  background-color: var(--item-hover);
 }
 .track:active {
-  background-color: var(--active);
+  background-color: var(--item-active);
 }
 
 .track .image {
-  width: 50px;
-  height: 50px;
+  width: 40px;
+  height: 40px;
   border-top-left-radius: 5px;
   border-bottom-left-radius: 5px;
 }
@@ -87,12 +87,12 @@
   flex-direction: row;
   align-items: center;
   padding: 0px;
+  font-size: 13px;
 }
 
 .track .name {
   font-weight: 700;
   flex: 1;
-  font-size: 15px;
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -101,7 +101,6 @@
 
 .track .album {
   flex: 1;
-  font-size: 15px;
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -110,7 +109,6 @@
 
 .track .artists {
   flex: 1;
-  font-size: 15px;
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;

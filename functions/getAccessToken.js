@@ -15,7 +15,7 @@ export default function getAccessToken(Function) {
       .then((response) => response.json())
       .then((body) => {
         if (body.error) {
-          console.error(body.error_description);
+          console.error(body.error.message);
         } else {
           localStorage.accessToken = body.access_token;
           localStorage.expiresAt = (3000000 + new Date().getTime()).toString();

@@ -6,13 +6,23 @@ export default function Track({
     track: { album, artists, name },
   },
   index,
+  tabIndex,
   vertical,
-  onClick,
+  play,
 }) {
   const date = new Date(added_at);
 
   return (
-    <div className={styles.track} onClick={onClick}>
+    <div
+      tabIndex={`${tabIndex}`}
+      className={styles.track}
+      onClick={play}
+      onKeyUp={(e) => {
+        if (e.code === "Enter") {
+          play(e);
+        }
+      }}
+    >
       {album.images && (
         <img
           src={album.images[0].url}

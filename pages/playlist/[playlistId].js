@@ -1,13 +1,14 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import styles from "@/styles/Playlist.module.css";
 
 import { useRouter } from "next/router";
-import Image from "next/image";
 import Head from "next/head";
 
 import getAccessToken from "@/functions/getAccessToken";
 import shuffleArray from "@/functions/shuffleArray";
-import styles from "@/styles/Playlist.module.css";
+import Header from "@/components/header";
 import Track from "@/components/track";
+import Playlist from "@/components/playlist";
 
 const themes = ["blue", "pink", "lime", "mono"];
 
@@ -57,7 +58,7 @@ async function loadTracks(tracks, temp) {
 
     for (let offset = 50; offset < tracks.total; offset += 50) {
       requests.push(
-        fetch(baseURL + "?limit=50&offset=" + offset, {
+        fetch(baseURL + "?limit=100&offset=" + offset, {
           headers: {
             Authorization: "Bearer " + localStorage.accessToken,
           },
@@ -78,10 +79,10 @@ async function loadTracks(tracks, temp) {
   return temp.filter((value) => value.track);
 }
 
-export default function Playlist() {
+export default function () {
   const [playlist, setPlaylist] = useState();
-  const [status, setStatus] = useState(null); // "saved", "liked", or null
   const [tracks, setTracks] = useState([]);
+  const [status, setStatus] = useState(null); // "saved", "liked", or null
 
   const [filter, setFilter] = useState("");
   const [sortKey, setSortKey] = useState();
@@ -111,11 +112,8 @@ export default function Playlist() {
   const [vertical, setVertical] = useState();
   const [theme, setTheme] = useState();
 
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [sorterOpen, setSorterOpen] = useState(false);
-  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
 
-  const menu = useRef();
   const router = useRouter();
 
   useEffect(() => {
@@ -138,25 +136,6 @@ export default function Playlist() {
       localStorage.theme = theme;
       router.replace("/");
     } else {
-      onclick = (e) => {
-        if (
-          e.target.className !== "" &&
-          e.target.className !== "menuButton" &&
-          e.target.className !== "menu" &&
-          !e.target.className
-            .split(" ")
-            .some((className) => className === "circle")
-        )
-          setMenuOpen(false);
-
-        if (
-          e.target.className !== "sorterOpener open" &&
-          e.target.className !== "sorterMenu open" &&
-          e.target.className !== "sorterMenuItem"
-        )
-          setSorterOpen(false);
-      };
-
       if (themes.some((t) => t === localStorage.theme)) {
         setTheme(localStorage.theme);
       } else {
@@ -207,7 +186,7 @@ export default function Playlist() {
             .then((response) => response.json())
             .then((body) => {
               if (body.error) {
-                setError("Playlist Not Found");
+                setMessage("Playlist Not Found");
                 return;
               }
 
@@ -267,10 +246,6 @@ export default function Playlist() {
   }, [router]);
 
   useEffect(() => {
-    menu.current.style.height = menuOpen ? "60px" : "0px";
-  }, [menuOpen]);
-
-  useEffect(() => {
     if (theme) localStorage.theme = theme;
   }, [theme]);
 
@@ -283,7 +258,7 @@ export default function Playlist() {
       localStorage.reversedTracks = JSON.stringify(reversed);
   }, [reversed]);
 
-  function play() {
+  function play(e) {
     getAccessToken((accessToken) => {
       fetch("https://api.spotify.com/v1/me/player", {
         headers: {
@@ -295,7 +270,8 @@ export default function Playlist() {
         })
         .then((body) => {
           if (body === undefined) {
-            return setError("Cant find active spotify device");
+            e.target.blur();
+            return setMessage("Cant find active spotify device");
           }
 
           const shuffledTracks = shuffleArray([...tracks]).map(
@@ -350,7 +326,7 @@ export default function Playlist() {
     });
   }
 
-  function playFrom(uri) {
+  function playFrom(e, uri) {
     getAccessToken((accessToken) => {
       fetch("https://api.spotify.com/v1/me/player", {
         headers: {
@@ -362,7 +338,8 @@ export default function Playlist() {
         })
         .then((body) => {
           if (body === undefined) {
-            return setError("Cant find active spotify device");
+            e.target.blur();
+            return setMessage("Cant find active spotify device");
           }
 
           const deviceId = body.device.id;
@@ -422,251 +399,88 @@ export default function Playlist() {
     });
   }
 
+  function goHome() {
+    router.push("/home");
+  }
+
+  function reverse() {
+    setReversed((prev) => !prev);
+  }
+
+  function open() {
+    router.push("/user/" + playlist.owner.id);
+  }
+
+  function switchLiked() {
+    setStatus((prev) => {
+      const { playlistId } = router.query;
+
+      const liked = JSON.parse(localStorage.liked);
+      const loaded = JSON.parse(localStorage.loaded);
+
+      if (!prev) {
+        liked[playlistId] = playlist;
+        loaded[playlistId] = tracks;
+        localStorage.liked = JSON.stringify(liked);
+        localStorage.loaded = JSON.stringify(loaded);
+        return "liked";
+      }
+
+      delete liked[playlistId];
+      delete loaded[playlistId];
+      localStorage.liked = JSON.stringify(liked);
+      localStorage.loaded = JSON.stringify(loaded);
+    });
+  }
+
   return (
     <>
       <Head>
         {playlist ? (
-          <title>{playlist.name} - Spotify Helper 2.0</title>
+          <title>{playlist.name} - Spotify Helper</title>
         ) : (
-          <title>Carregando... - Spotify Helper 2.0</title>
+          <title>Carregando... - Spotify Helper</title>
         )}
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      {error && (
-        <div className={"modal " + (theme || "loading")}>
-          <div className="message">
-            {error}
-            <div
-              className="button"
-              onClick={() => {
-                setError("");
-              }}
-            >
-              <Image src="/close.svg" alt="close" width={25} height={25} />
-            </div>
-          </div>
-        </div>
-      )}
+      {message && <Modal {...{ theme, message, clearError }} />}
       <div
-        className={["container ", theme || "loading", error && "error"].join(
-          " "
-        )}
+        className={[
+          "container ",
+          theme || "loading",
+          message && "modalOpen",
+        ].join(" ")}
       >
-        <div className="header">
-          <div className="left">
-            <div
-              className="button"
-              onClick={() => {
-                router.push("/home");
-              }}
-            >
-              <Image src="/home.svg" alt="home" width={25} height={25} />
-            </div>
-          </div>
-
-          <div className="center">
-            <Image
-              src="/favicon.ico"
-              alt="favicon"
-              width={50}
-              height={50}
-              className="logo"
-            />
-            <div className="title">
-              <div>Spotify</div>
-              <div>Helper</div>
-            </div>
-          </div>
-
-          <div className="right">
-            <div
-              className="button"
-              onClick={() => setMenuOpen((prev) => !prev)}
-            >
-              <Image
-                src="/ellipsis.svg"
-                alt="ellipsis"
-                width={25}
-                height={25}
-              />
-            </div>
-          </div>
-          <div className="menu" ref={menu}>
-            {themes
-              .filter((t) => t !== theme)
-              .map((theme) => (
-                <div
-                  className={"circle " + theme}
-                  key={theme}
-                  onClick={() => {
-                    setTheme(theme);
-                  }}
-                ></div>
-              ))}
-          </div>
-        </div>
+        <Header exit={goHome} {...{ theme, setTheme }} />
         <div className="body">
-          <div className="subheader">
-            {playlist ? (
-              <>
-                <img
-                  src={playlist.images[0].url}
-                  alt={playlist.name + " image"}
-                  className={styles.image}
-                />
-                <div className={styles.details}>
-                  <div className={styles.title}>{playlist.name}</div>
-                  {playlist.description && (
-                    <div className={styles.subtitle}>
-                      {playlist.description}
-                    </div>
-                  )}
-                  <div className={styles.subtitle}>
-                    <span
-                      className={styles.owner}
-                      onClick={() => {
-                        router.push("/user/" + playlist.owner.id);
-                      }}
-                    >
-                      {playlist.owner.display_name}{" "}
-                    </span>
-                    - {playlist.tracks.total} músicas
-                  </div>
-                  <div className="sorter">
-                    <div
-                      className={"sorterOpener" + (sorterOpen ? " open" : "")}
-                      onClick={() => setSorterOpen((prev) => !prev)}
-                    >
-                      {sortKey}
-                    </div>
-                    <div
-                      className="sorterReverser"
-                      onClick={() => setReversed((prev) => !prev)}
-                    >
-                      {reversed ? (
-                        <Image
-                          src="/down.svg"
-                          alt="down"
-                          width={15}
-                          height={15}
-                        />
-                      ) : (
-                        <Image src="/up.svg" alt="up" width={15} height={15} />
-                      )}
-                    </div>
-
-                    <div className={"sorterMenu" + (sorterOpen ? " open" : "")}>
-                      {Object.keys(sortKeys)
-                        .filter((value) => value !== sortKey)
-                        .map((value) => (
-                          <div
-                            key={value}
-                            className="sorterMenuItem"
-                            onClick={() => setSortKey(value)}
-                          >
-                            {value}
-                          </div>
-                        ))}
-                    </div>
-                  </div>
-                  <div className="filter">
-                    <input
-                      className="textInput"
-                      type="text"
-                      value={filter}
-                      onChange={(e) => setFilter(e.target.value)}
-                      placeholder={"Search"}
-                      onKeyDown={(e) => e.key === "Escape" && setFilter("")}
-                    />
-                    {filter && (
-                      <div
-                        className="filterButton"
-                        onClick={() => {
-                          setFilter("");
-                        }}
-                      >
-                        <Image
-                          src="/close.svg"
-                          alt="close"
-                          width={15}
-                          height={15}
-                        />
-                      </div>
-                    )}
-                  </div>
-                  <div className="row">
-                    <div className={styles.button} onClick={play}>
-                      <Image
-                        src="/play.svg"
-                        alt="play"
-                        width={25}
-                        height={25}
-                      />
-                    </div>
-                    {status === "saved" ? (
-                      <div
-                        className={styles.button}
-                        onClick={() => {
-                          navigator.clipboard.writeText(location);
-                          setError("Adicionado a área de transferência");
-                        }}
-                      >
-                        <Image
-                          src={"/share.svg"}
-                          alt="heart"
-                          width={25}
-                          height={25}
-                        />
-                      </div>
-                    ) : (
-                      <div
-                        className={styles.button}
-                        onClick={() =>
-                          setStatus((prev) => {
-                            const { playlistId } = router.query;
-
-                            const liked = JSON.parse(localStorage.liked);
-                            const loaded = JSON.parse(localStorage.loaded);
-
-                            if (!prev) {
-                              liked[playlistId] = playlist;
-                              loaded[playlistId] = tracks;
-                              localStorage.liked = JSON.stringify(liked);
-                              localStorage.loaded = JSON.stringify(loaded);
-                              return "liked";
-                            }
-
-                            delete liked[playlistId];
-                            delete loaded[playlistId];
-                            localStorage.liked = JSON.stringify(liked);
-                            localStorage.loaded = JSON.stringify(loaded);
-                          })
-                        }
-                      >
-                        <Image
-                          src={
-                            status === "liked"
-                              ? "/heart-filled.svg"
-                              : "/heart-outline.svg"
-                          }
-                          alt="heart"
-                          width={25}
-                          height={25}
-                        />
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </>
-            ) : null}
-          </div>
+          <Playlist
+            {...{
+              playlist,
+              sortKey,
+              sortKeys,
+              reverse,
+              open,
+              reversed,
+              setSortKey,
+              filter,
+              setFilter,
+              play,
+              status,
+              setStatus,
+              switchLiked,
+              vertical,
+            }}
+          />
           {sortedTracks.map((track, index) => (
             <Track
+              tabIndex={
+                5 + themes.length + Object.keys(sortKeys).length + index
+              }
               key={index}
               track={track}
               index={index + 1}
-              onClick={() => playFrom(track.track.uri)}
+              play={(e) => playFrom(e, track.track.uri)}
               vertical={vertical}
             />
           ))}

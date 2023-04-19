@@ -1,4 +1,12 @@
+.details {
+  display: flex;
+  flex-direction: column;
+  width: 400px;
+  gap: 10px;
+}
+
 .playlists {
+  margin-top: 20px;
   display: flex;
   padding-bottom: 20px;
   justify-content: center;
@@ -12,12 +20,16 @@
   font-size: 20px;
   font-weight: 700;
 }
+.subtitle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 700;
+}
 
 .details {
   display: flex;
-  padding: 30px;
-  padding-top: 10px;
-  padding-bottom: 10px;
   flex-direction: column;
   width: 400px;
   gap: 10px;
