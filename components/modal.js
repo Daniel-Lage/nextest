@@ -15,7 +15,7 @@ export default function Modal({ theme, message, clearError }) {
             }
           }}
         >
-          <ButtonSvg name="close" size={25} />
+          <ButtonSvg name="close" size={20} />
         </div>
       </div>
     </div>
