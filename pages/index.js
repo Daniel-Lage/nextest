@@ -72,6 +72,7 @@ export default function Start() {
         </div>
         <div className="body">
           <a
+            tabIndex="1"
             className="button"
             href={"https://accounts.spotify.com/authorize?" + params}
           >

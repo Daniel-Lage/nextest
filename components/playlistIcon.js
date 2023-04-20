@@ -3,7 +3,7 @@ import Image from "next/image";
 
 import getAccessToken from "@/functions/getAccessToken";
 import shuffleArray from "@/functions/shuffleArray";
-import styles from "@/styles/Home.module.css";
+import styles from "@/styles/User.module.css";
 
 async function loadTracks(tracks, temp) {
   temp = [...temp, ...tracks.items];

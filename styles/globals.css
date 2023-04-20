@@ -135,6 +135,15 @@ a {
   background-color: var(--button-active);
 }
 
+.body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  width: 100vw;
+  background-color: var(--background);
+}
+
 .button {
   display: flex;
   padding: 10px;
