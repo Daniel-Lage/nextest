@@ -8,12 +8,12 @@ import styles from "@/styles/User.module.css";
 import getAccessToken from "@/functions/getAccessToken";
 
 import PlaylistIcon from "@/components/playlistIcon";
-import ButtonSvg from "@/components/buttonSvg";
-import Filter from "@/components/filter";
 import Header from "@/components/header";
-import Sorter from "@/components/sorter";
 import Modal from "@/components/modal";
-import User from "@/components/user";
+import UserDetails from "@/components/userDetails";
+import UserSummary from "@/components/userSummary";
+
+var prevScrollTop = 0;
 
 const sortKeys = {
   Criador: (a, b) => {
@@ -74,8 +74,9 @@ async function loadPlaylists(playlists, temp) {
   return temp;
 }
 
-export default function UserPage() {
+export default function User() {
   const [user, setUser] = useState();
+  const [total, setTotal] = useState();
   const [playlists, setPlaylists] = useState([]);
 
   const [filter, setFilter] = useState("");
@@ -103,6 +104,8 @@ export default function UserPage() {
   );
 
   const [theme, setTheme] = useState();
+  const [showSummary, setShowSummary] = useState();
+  const [headerHidden, setHeaderHidden] = useState();
 
   const [message, setMessage] = useState("");
 
@@ -120,7 +123,7 @@ export default function UserPage() {
         "reversedPlaylists",
         "sortTracksKey",
         "reversedTracks",
-        "userId",
+        "user",
       ].some((value) => localStorage[value] === undefined)
     ) {
       const theme = localStorage.theme;
@@ -139,61 +142,76 @@ export default function UserPage() {
       const { userId } = router.query;
 
       if (userId !== undefined) {
-        getAccessToken((accessToken) => {
-          fetch("https://api.spotify.com/v1/users/" + userId, {
-            headers: {
-              Authorization: "Bearer " + accessToken,
-            },
-          })
-            .then((response) => response.json())
-            .then((body) => {
-              const user = {
-                display_name: body.display_name,
-                images: [{ url: body.images[0].url }],
-                followers: { total: body.followers.total },
-              };
-              setUser(user);
-            });
-
-          fetch(
-            "https://api.spotify.com/v1/users/" +
-              userId +
-              "/playlists?limit=50",
-            {
+        if (userId === JSON.parse(localStorage.user).id)
+          router.replace("/home");
+        else
+          getAccessToken((accessToken) => {
+            fetch("https://api.spotify.com/v1/users/" + userId, {
               headers: {
                 Authorization: "Bearer " + accessToken,
               },
-            }
-          )
-            .then((response) => response.json())
-            .then((body) => {
-              if (body.error) {
-                setError("User Not Found");
-                console.error(body.error.message);
-              } else {
-                loadPlaylists(body, []).then((playlists) => {
-                  playlists = playlists.map(
-                    ({
-                      name,
-                      description,
-                      id,
-                      tracks: { total },
-                      owner: { display_name },
-                      images,
-                    }) => ({
-                      name,
-                      description,
-                      id,
-                      tracks: { total },
-                      owner: { display_name },
-                      images: [{ url: images[0].url }],
-                    })
-                  );
-                  setPlaylists(playlists);
-                });
+            })
+              .then((response) => response.json())
+              .then((body) => {
+                console.log(body);
+                const user = {
+                  display_name: body.display_name,
+                  images: [{ url: body.images[0].url }],
+                  followers: { total: body.followers.total },
+                };
+                setUser(user);
+                localStorage.user = JSON.stringify(user);
+              });
+
+            fetch(
+              "https://api.spotify.com/v1/users/" +
+                userId +
+                "/playlists?limit=50",
+              {
+                headers: {
+                  Authorization: "Bearer " + accessToken,
+                },
               }
-            });
-        });
+            )
+              .then((response) => response.json())
+              .then((body) => {
+                if (body.error) {
+                  setError("User Not Found");
+                  console.error(body.error.message);
+                } else {
+                  setTotal(body.total);
+                  loadPlaylists(body, []).then((playlists) => {
+                    playlists = playlists.map(
+                      ({
+                        name,
+                        description,
+                        id,
+                        tracks: { total },
+                        owner: { display_name },
+                        images,
+                      }) => ({
+                        name,
+                        description,
+                        id,
+                        tracks: { total },
+                        owner: { display_name },
+                        images: [{ url: images[0].url }],
+                      })
+                    );
+                    setPlaylists([
+                      ...playlists,
+                      ...Object.values(JSON.parse(localStorage.liked)),
+                    ]);
+
+                    const saved = {};
+                    playlists.forEach((playlist) => {
+                      saved[playlist.id] = playlist;
+                    });
+                    localStorage.saved = JSON.stringify(saved);
+                  });
+                }
+              });
+          });
       }
     }
   }, [router]);
@@ -223,14 +241,12 @@ export default function UserPage() {
     setReversed((prev) => !prev);
   }
 
+  console.log(user, playlists);
+
   return (
     <>
       <Head>
-        {user ? (
-          <title>{user.display_name} - Spotify Helper</title>
-        ) : (
-          <title>Carregando... - Spotify Helper</title>
-        )}
+        <title>Página Inicial - Spotify Helper</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
@@ -242,9 +258,38 @@ export default function UserPage() {
           message && "modalOpen",
         ].join(" ")}
       >
-        <Header exit={goHome} {...{ theme, setTheme }} />
-        <div className="body">
-          <User
+        <div className="before">
+          <Header exit={goHome} {...{ theme, setTheme, headerHidden }} />
+          {showSummary && (
+            <UserSummary
+              {...{
+                user,
+                sortKey,
+                sortKeys,
+                reverse,
+                reversed,
+                setSortKey,
+                filter,
+                setFilter,
+              }}
+            />
+          )}
+        </div>
+        <div
+          className={styles.body}
+          onScroll={(e) => {
+            const details = e.target.firstChild;
+            const detailsBottom = details.offsetHeight + details.offsetTop;
+            setShowSummary(e.target.scrollTop > detailsBottom);
+
+            const deltaScrollTop = e.target.scrollTop - prevScrollTop;
+            if (Math.abs(deltaScrollTop) > 100) {
+              setHeaderHidden(deltaScrollTop > 0);
+              prevScrollTop = e.target.scrollTop;
+            }
+          }}
+        >
+          <UserDetails
             {...{
               user,
               sortKey,
@@ -254,6 +299,7 @@ export default function UserPage() {
               setSortKey,
               filter,
               setFilter,
+              total,
             }}
           />
           <div className={styles.playlists}>

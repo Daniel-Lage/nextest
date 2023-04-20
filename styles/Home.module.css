@@ -18,15 +18,14 @@
   border-radius: 5px;
   user-select: none;
   cursor: pointer;
-  box-shadow: 0px 0px 10px hsla(0, 0%, 0%, 0.3);
-  background-color: var(--item);
+  color: var(--button);
 }
 .playlist:hover,
 .playlist:focus-visible {
-  background-color: var(--item-hover);
+  color: var(--button-hover);
 }
 .playlist:active {
-  background-color: var(--item-active);
+  color: var(--button-active);
 }
 
 .playlist .button {
@@ -64,8 +63,6 @@
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   text-overflow: clip;
-  margin-left: 10px;
-  margin-right: 10px;
   margin-bottom: 10px;
 }
 
@@ -79,9 +76,9 @@
   align-items: flex-end;
   justify-content: flex-end;
   width: 150px;
-  height: 150px;
-  border-top-left-radius: 5px;
-  border-top-right-radius: 5px;
+  aspect-ratio: 1;
+  border-radius: 5px;
+  box-shadow: 0px 0px 10px hsla(0, 0%, 0%, 0.3);
 }
 
 .title {

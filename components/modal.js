@@ -1,6 +1,6 @@
 import ButtonSvg from "./buttonSvg";
 
-export default function Modal({ theme, message, clearError }) {
+export default function Modal({ theme, message, clearMessage }) {
   return (
     <div className={"modal " + (theme || "loading")}>
       <div className="message">
@@ -8,10 +8,10 @@ export default function Modal({ theme, message, clearError }) {
         <div
           tabIndex="0"
           className="headerButton"
-          onClick={clearError}
+          onClick={clearMessage}
           onKeyUp={(e) => {
             if (e.code === "Enter") {
-              clearError();
+              clearMessage();
             }
           }}
         >

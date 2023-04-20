@@ -8,10 +8,11 @@ import getAccessToken from "@/functions/getAccessToken";
 import shuffleArray from "@/functions/shuffleArray";
 import Header from "@/components/header";
 import Track from "@/components/track";
-import Playlist from "@/components/playlist";
 import Modal from "@/components/modal";
+import PlaylistDetails from "@/components/playlistDetails";
+import PlaylistSummary from "@/components/playlistSummary";
 
-const themes = ["blue", "pink", "lime", "mono"];
+var prevScrollTop = 0;
 
 const sortKeys = {
   Artista: (a, b) => {
@@ -80,7 +81,7 @@ async function loadTracks(tracks, temp) {
   return temp.filter((value) => value.track);
 }
 
-export default function PlaylistPage() {
+export default function Playlist() {
   const [playlist, setPlaylist] = useState();
   const [tracks, setTracks] = useState([]);
   const [status, setStatus] = useState(null); // "saved", "liked", or null
@@ -111,6 +112,8 @@ export default function PlaylistPage() {
   );
 
   const [vertical, setVertical] = useState();
+  const [headerHidden, setHeaderHidden] = useState();
+  const [showSummary, setShowSummary] = useState();
   const [theme, setTheme] = useState();
 
   const [message, setMessage] = useState("");
@@ -129,7 +132,7 @@ export default function PlaylistPage() {
         "reversedPlaylists",
         "sortTracksKey",
         "reversedTracks",
-        "userId",
+        "user",
       ].some((value) => localStorage[value] === undefined)
     ) {
       const theme = localStorage.theme;
@@ -137,12 +140,6 @@ export default function PlaylistPage() {
       localStorage.theme = theme;
       router.replace("/");
     } else {
-      if (themes.some((t) => t === localStorage.theme)) {
-        setTheme(localStorage.theme);
-      } else {
-        setTheme("blue");
-      }
-
       setVertical(innerHeight > innerWidth);
 
       onresize = () => {
@@ -412,6 +409,16 @@ export default function PlaylistPage() {
     router.push("/user/" + playlist.owner.id);
   }
 
+  function clearFilter() {
+    setFilter("");
+  }
+
+  function share() {
+    navigator.clipboard.writeText(location);
+    e.target.blur();
+    setMessage("Adicionado a área de transferência");
+  }
+
   function switchLiked() {
     setStatus((prev) => {
       const { playlistId } = router.query;
@@ -434,6 +441,10 @@ export default function PlaylistPage() {
     });
   }
 
+  function clearMessage() {
+    setMessage("");
+  }
+
   return (
     <>
       <Head>
@@ -445,7 +456,7 @@ export default function PlaylistPage() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      {message && <Modal {...{ theme, message, clearError }} />}
+      {message && <Modal {...{ theme, message, clearMessage }} />}
       <div
         className={[
           "container ",
@@ -453,9 +464,44 @@ export default function PlaylistPage() {
           message && "modalOpen",
         ].join(" ")}
       >
-        <Header exit={goHome} {...{ theme, setTheme }} />
-        <div className="body">
-          <Playlist
+        <div className="before">
+          <Header exit={goHome} {...{ theme, setTheme, headerHidden }} />
+          {showSummary && (
+            <PlaylistSummary
+              {...{
+                playlist,
+                sortKey,
+                sortKeys,
+                reverse,
+                open,
+                reversed,
+                setSortKey,
+                filter,
+                setFilter,
+                play,
+                status,
+                switchLiked,
+                clearFilter,
+                share,
+              }}
+            />
+          )}
+        </div>
+        <div
+          className={styles.body}
+          onScroll={(e) => {
+            const details = e.target.firstChild;
+            const detailsBottom = details.offsetHeight + details.offsetTop;
+            setShowSummary(e.target.scrollTop > detailsBottom);
+
+            const deltaScrollTop = e.target.scrollTop - prevScrollTop;
+            if (Math.abs(deltaScrollTop) > 100) {
+              setHeaderHidden(deltaScrollTop > 0);
+              prevScrollTop = e.target.scrollTop;
+            }
+          }}
+        >
+          <PlaylistDetails
             {...{
               playlist,
               sortKey,
@@ -471,13 +517,14 @@ export default function PlaylistPage() {
               setStatus,
               switchLiked,
               vertical,
+              showSummary,
+              clearFilter,
+              share,
             }}
           />
           {sortedTracks.map((track, index) => (
             <Track
-              tabIndex={
-                5 + themes.length + Object.keys(sortKeys).length + index
-              }
+              tabIndex={9 + Object.keys(sortKeys).length + index}
               key={index}
               track={track}
               index={index + 1}

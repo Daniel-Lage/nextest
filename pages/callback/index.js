@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
 
-export default function CallbackPage() {
+export default function Callback() {
   const router = useRouter();
 
   useEffect(() => {
@@ -36,7 +36,7 @@ export default function CallbackPage() {
             localStorage.reversedPlaylists = "false";
             localStorage.sortTracksKey = "Date";
             localStorage.reversedTracks = "false";
-            localStorage.userId = "";
+            localStorage.user = "null";
             localStorage.expiresAt = (
               body.expires_in * 1000 +
               new Date().getTime()

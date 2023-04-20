@@ -3,7 +3,7 @@ import ButtonSvg from "./buttonSvg";
 
 const themes = ["blue", "pink", "lime", "mono"];
 
-export default function ColorPicker({ theme, setTheme }) {
+export default function ColorPicker({ theme, setTheme, headerHidden }) {
   const [open, setOpen] = useState();
   const filter = useRef();
 
@@ -21,6 +21,7 @@ export default function ColorPicker({ theme, setTheme }) {
 
   return (
     <div
+      className="right"
       tabIndex="0"
       onBlur={(e) => setOpen(e.currentTarget.contains(e.relatedTarget))}
     >
@@ -37,12 +38,16 @@ export default function ColorPicker({ theme, setTheme }) {
       >
         <ButtonSvg name="ellipsis" size={20} />
       </div>
-      <div className={"colorPicker" + (open ? " open" : "")}>
+      <div
+        className={
+          "colorPicker" + (headerHidden ? " hidden" : open ? " open" : "")
+        }
+      >
         {themes
           .filter((t) => t !== theme)
           .map((theme, index) => (
             <div
-              tabIndex={open ? `${3 + index}` : null}
+              tabIndex={open && !headerHidden ? `${3 + index}` : null}
               className={"circle " + theme}
               key={theme}
               onClick={() => {

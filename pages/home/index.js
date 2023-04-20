@@ -3,16 +3,17 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
 
-import styles from "@/styles/Home.module.css";
+import styles from "@/styles/User.module.css";
 
 import getAccessToken from "@/functions/getAccessToken";
 
 import PlaylistIcon from "@/components/playlistIcon";
-import ButtonSvg from "@/components/buttonSvg";
-import Filter from "@/components/filter";
 import Header from "@/components/header";
-import Sorter from "@/components/sorter";
 import Modal from "@/components/modal";
+import UserDetails from "@/components/userDetails";
+import UserSummary from "@/components/userSummary";
+
+var prevScrollTop = 0;
 
 const sortKeys = {
   Criador: (a, b) => {
@@ -73,7 +74,9 @@ async function loadPlaylists(playlists, temp) {
   return temp;
 }
 
-export default function HomePage() {
+export default function User() {
+  const [user, setUser] = useState();
+  const [total, setTotal] = useState();
   const [playlists, setPlaylists] = useState([]);
 
   const [filter, setFilter] = useState("");
@@ -101,7 +104,8 @@ export default function HomePage() {
   );
 
   const [theme, setTheme] = useState();
-  const [userId, setUserId] = useState("");
+  const [showSummary, setShowSummary] = useState();
+  const [headerHidden, setHeaderHidden] = useState();
 
   const [message, setMessage] = useState("");
 
@@ -119,7 +123,7 @@ export default function HomePage() {
         "reversedPlaylists",
         "sortTracksKey",
         "reversedTracks",
-        "userId",
+        "user",
       ].some((value) => localStorage[value] === undefined)
     ) {
       const theme = localStorage.theme;
@@ -140,7 +144,7 @@ export default function HomePage() {
 
       setReversed(JSON.parse(localStorage.reversedPlaylists));
 
-      setUserId(localStorage.userId);
+      setUser(JSON.parse(localStorage.user));
 
       getAccessToken((accessToken) => {
         fetch("https://api.spotify.com/v1/me", {
@@ -150,8 +154,15 @@ export default function HomePage() {
         })
           .then((response) => response.json())
           .then((body) => {
-            setUserId(body.id);
-            localStorage.userId = body.id;
+            console.log(body.followers);
+            const user = {
+              id: body.id,
+              display_name: body.display_name,
+              images: [{ url: body.images[0].url }],
+              followers: { total: body.followers.total },
+            };
+            setUser(user);
+            localStorage.user = JSON.stringify(user);
           });
 
         fetch("https://api.spotify.com/v1/me/playlists?limit=50", {
@@ -164,6 +175,7 @@ export default function HomePage() {
             if (body.error) {
               console.error(body.error.message);
             } else {
+              setTotal(body.total);
               loadPlaylists(body, []).then((playlists) => {
                 playlists = playlists.map(
                   ({
@@ -179,10 +191,9 @@ export default function HomePage() {
                     id,
                     tracks: { total },
                     owner: { display_name },
-                    images: [images[0] ? { url: images[0].url } : undefined],
+                    images: [{ url: images[0].url }],
                   })
                 );
-
                 setPlaylists([
                   ...playlists,
                   ...Object.values(JSON.parse(localStorage.liked)),
@@ -228,16 +239,6 @@ export default function HomePage() {
     setReversed((prev) => !prev);
   }
 
-  function clearFilter() {
-    setFilter("");
-  }
-
-  function share(e) {
-    navigator.clipboard.writeText(location.origin + "/user/" + userId);
-    e.target.blur();
-    setMessage("Adicionado a área de transferência");
-  }
-
   return (
     <>
       <Head>
@@ -253,44 +254,56 @@ export default function HomePage() {
           message && "modalOpen",
         ].join(" ")}
       >
-        <Header home exit={logout} {...{ theme, setTheme }} />
-        <div className="subheader">
-          <Sorter
-            tabIndex={7}
+        <div className="before">
+          <Header home exit={logout} {...{ theme, setTheme, headerHidden }} />
+          {showSummary && (
+            <UserSummary
+              self
+              {...{
+                user,
+                sortKey,
+                sortKeys,
+                reverse,
+                reversed,
+                setSortKey,
+                filter,
+                setFilter,
+              }}
+            />
+          )}
+        </div>
+        <div
+          className={styles.body}
+          onScroll={(e) => {
+            const details = e.target.firstChild;
+            const detailsBottom = details.offsetHeight + details.offsetTop;
+            setShowSummary(e.target.scrollTop > detailsBottom);
+
+            const deltaScrollTop = e.target.scrollTop - prevScrollTop;
+            if (Math.abs(deltaScrollTop) > 100) {
+              setHeaderHidden(deltaScrollTop > 0);
+              prevScrollTop = e.target.scrollTop;
+            }
+          }}
+        >
+          <UserDetails
+            self
             {...{
+              user,
               sortKey,
+              sortKeys,
               reverse,
               reversed,
-              sortKeys,
               setSortKey,
-            }}
-          />
-          <Filter
-            tabIndex={9 + Object.keys(sortKeys).length}
-            {...{
               filter,
               setFilter,
-              clearFilter,
+              total,
             }}
           />
-          <div
-            tabIndex={`${11 + Object.keys(sortKeys).length}`}
-            className="subheaderButton"
-            onClick={share}
-            onKeyUp={(e) => {
-              if (e.code === "Enter") {
-                share(e);
-              }
-            }}
-          >
-            <ButtonSvg name="share" size={15} />
-          </div>
-        </div>
-        <div className="body">
           <div className={styles.playlists}>
             {sortedPlaylists.map((playlist, index) => (
               <PlaylistIcon
-                tabIndex={12 + Object.keys(sortKeys).length + index * 2}
+                tabIndex={10 + Object.keys(sortKeys).length + index * 2}
                 playlist={playlist}
                 key={playlist.id}
                 setMessage={setMessage}

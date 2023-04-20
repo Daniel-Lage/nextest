@@ -3,16 +3,14 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import Image from "next/image";
 import Head from "next/head";
+import Header from "@/components/header";
 
 const themes = ["blue", "pink", "lime", "mono"];
 
-export default function StartPage() {
+export default function Start() {
   const [params, setParams] = useState();
 
   const [theme, setTheme] = useState();
-
-  const [open, setOpen] = useState(false);
-  const menu = useRef();
 
   const router = useRouter();
 
@@ -28,7 +26,7 @@ export default function StartPage() {
         "reversedPlaylists",
         "sortTracksKey",
         "reversedTracks",
-        "userId",
+        "user",
       ].every((value) => localStorage[value] !== undefined)
     ) {
       router.replace("/home");
@@ -58,10 +56,6 @@ export default function StartPage() {
   }, [router]);
 
   useEffect(() => {
-    menu.current.style.height = open ? "60px" : "0px";
-  }, [open]);
-
-  useEffect(() => {
     if (theme) localStorage.theme = theme;
   }, [theme]);
 
@@ -73,35 +67,10 @@ export default function StartPage() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <div className={["container ", theme || "loading"].join(" ")}>
-        <div className="header">
-          <div className="center">
-            <div className="title">Spotify Helper</div>
-          </div>
-          <div className="right">
-            <div className="button" onClick={() => setOpen((prev) => !prev)}>
-              <Image
-                src="/ellipsis.svg"
-                alt="ellipsis"
-                width={25}
-                height={25}
-              />
-            </div>
-          </div>
-          <div className="menu" ref={menu}>
-            {themes
-              .filter((t) => t !== theme)
-              .map((theme) => (
-                <div
-                  className={"circle " + theme}
-                  key={theme}
-                  onClick={() => {
-                    setTheme(theme);
-                  }}
-                ></div>
-              ))}
-          </div>
+        <div className="before">
+          <Header start {...{ theme, setTheme, headerHidden: false }} />
         </div>
-        <div className="body" style={{ justifyContent: "center" }}>
+        <div className="body">
           <a
             className="button"
             href={"https://accounts.spotify.com/authorize?" + params}
