@@ -1,4 +1,4 @@
-import styles from "@/styles/Playlist.module.css";
+import styles from "@/styles/Track.module.css";
 
 export default function Track({
   track: {

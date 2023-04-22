@@ -17,11 +17,10 @@ export default function playlistSummary({
   switchLiked,
   clearFilter,
   share,
-  showSummary,
 }) {
   return (
     playlist && (
-      <div className={styles.subheader}>
+      <div className="subheader">
         <div className={styles.title}>{playlist.name}</div>
         <Sorter
           tabIndex={4}

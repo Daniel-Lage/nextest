@@ -9,27 +9,13 @@
 }
 
 .playlists {
-  padding-top: 20px;
+  padding-top: 15px;
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
   flex: 1;
   background-color: var(--background);
-  gap: 20px;
-}
-
-.subheader {
-  display: flex;
-  width: 100vw;
-  padding-top: 10px;
-  padding-bottom: 10px;
-  justify-content: center;
   gap: 10px;
-  align-items: center;
-  background-color: var(--secondary);
-  left: 0px;
-  flex-wrap: wrap;
-  z-index: 1;
 }
 
 .details {
@@ -56,16 +42,18 @@
   border-radius: 50%;
   box-shadow: 0px 0px 15px hsla(0, 0%, 0%, 0.4);
 }
+
 .playlist {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 150px;
-  height: 230px;
+  width: max(150px, 11.5vw);
+  aspect-ratio: 2/3;
   border-radius: 5px;
   user-select: none;
   cursor: pointer;
   color: var(--button);
+  overflow: hidden;
 }
 .playlist:hover,
 .playlist:focus-visible {
@@ -75,7 +63,7 @@
   color: var(--button-active);
 }
 
-.playlist .button {
+.playlistButton {
   display: flex;
   width: 35px;
   aspect-ratio: 1;
@@ -87,22 +75,22 @@
   user-select: none;
   margin: 10px;
 }
-.playlist .button:hover,
-.playlist .button:focus-visible {
+.playlistButton:hover,
+.playlistButton:focus-visible {
   background-color: var(--button-hover);
 }
-.playlist .button:active {
+.playlistButton:active {
   background-color: var(--button-active);
 }
 
-.playlist .name {
+.playlistName {
   text-align: center;
   font-size: 15px;
   font-weight: 700;
   margin-top: 10px;
 }
 
-.playlist .text {
+.playlistText {
   font-size: 15px;
   text-align: center;
   overflow: hidden;
@@ -113,17 +101,28 @@
   margin-bottom: 10px;
 }
 
-.playlist .details {
-  width: 100%;
-  flex: 1;
-}
-
-.playlist .image {
+.playlistImage {
   display: flex;
   align-items: flex-end;
   justify-content: flex-end;
-  width: 150px;
+  width: 100%;
   aspect-ratio: 1;
   border-radius: 5px;
   box-shadow: 0px 0px 10px hsla(0, 0%, 0%, 0.3);
+  background-size: 100% 100%;
+  color: var(--button);
+  cursor: pointer;
+}
+
+.following {
+  color: var(--button);
+  cursor: pointer;
+}
+.following:hover,
+.following:focus-visible {
+  color: var(--button-hover);
+}
+
+.following:active {
+  color: var(--button-active);
 }

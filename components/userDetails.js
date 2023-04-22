@@ -4,6 +4,7 @@ import Filter from "./filter";
 import ButtonSvg from "./buttonSvg";
 
 export default function UserDetails({
+  self,
   user,
   sortKey,
   sortKeys,
@@ -13,20 +14,18 @@ export default function UserDetails({
   filter,
   setFilter,
   total,
+  share,
+  following,
+  switchFollowing,
+  goFollowing,
 }) {
   function clearFilter() {
     setFilter("");
   }
 
-  function share(e) {
-    navigator.clipboard.writeText(location.origin + "/user/" + userId);
-    e.target.blur();
-    setMessage("Adicionado a área de transferência");
-  }
-
   return (
     user && (
-      <div className={styles.subheader}>
+      <div className="subheader">
         <img
           src={user.images[0].url}
           alt={user.display_name}
@@ -38,7 +37,16 @@ export default function UserDetails({
             <div className={styles.title}>{user.display_name}</div>
             <div className={styles.subtitle}>
               {user.followers.total} seguidores -
-              {total ? ` ${total} playlists` : false}
+              {total ? (
+                <>
+                  <span className={styles.following} onClick={goFollowing}>
+                    {self ? `${following.length} seguindo` : false}
+                  </span>
+                  - {total} playlists
+                </>
+              ) : (
+                <>{self ? ` ${following.length} seguindo` : false}</>
+              )}
             </div>
           </>
 
@@ -63,7 +71,7 @@ export default function UserDetails({
             />
             <div
               tabIndex={`${9 + Object.keys(sortKeys).length}`}
-              className="subheaderButton"
+              className="headerButton"
               onClick={share}
               onKeyUp={(e) => {
                 if (e.code === "Enter") {
@@ -71,8 +79,25 @@ export default function UserDetails({
                 }
               }}
             >
-              <ButtonSvg name="share" size={15} />
+              <ButtonSvg name="share" size={20} />
             </div>
+            {self || (
+              <div
+                tabIndex={`${8 + Object.keys(sortKeys).length}`}
+                className="headerButton"
+                onClick={switchFollowing}
+                onKeyUp={(e) => {
+                  if (e.code === "Enter") {
+                    switchFollowing();
+                  }
+                }}
+              >
+                <ButtonSvg
+                  name={following ? "heart-filled" : "heart-outline"}
+                  size={20}
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>

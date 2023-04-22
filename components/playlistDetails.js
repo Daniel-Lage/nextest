@@ -22,7 +22,7 @@ export default function PlaylistDetails({
 }) {
   return (
     playlist && (
-      <div className={styles.subheader}>
+      <div className="subheader">
         <img
           src={playlist.images[0].url}
           alt={playlist.name + " image"}

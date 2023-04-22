@@ -11,6 +11,8 @@ import Track from "@/components/track";
 import Modal from "@/components/modal";
 import PlaylistDetails from "@/components/playlistDetails";
 import PlaylistSummary from "@/components/playlistSummary";
+import { localStorageKeys } from "@/functions/localStorageKeys";
+import loadTracks from "@/functions/loadTracks";
 
 var prevScrollTop = 0;
 
@@ -49,37 +51,6 @@ const sortKeys = {
     return B.getTime() - A.getTime();
   },
 };
-
-async function loadTracks(tracks, temp) {
-  var temp = [...temp, ...tracks.items];
-
-  if (tracks.next) {
-    const url = new URL(tracks.next);
-    const baseURL = url.origin + url.pathname;
-    const requests = [];
-
-    for (let offset = 50; offset < tracks.total; offset += 50) {
-      requests.push(
-        fetch(baseURL + "?limit=100&offset=" + offset, {
-          headers: {
-            Authorization: "Bearer " + localStorage.accessToken,
-          },
-        })
-      );
-    }
-
-    const responses = await Promise.all(requests);
-
-    const bodies = await Promise.all(
-      responses.map((response) => response.json())
-    );
-
-    bodies.forEach((body) => {
-      temp = [...temp, ...body.items];
-    });
-  }
-  return temp.filter((value) => value.track);
-}
 
 export default function Playlist() {
   const [playlist, setPlaylist] = useState();
@@ -121,20 +92,7 @@ export default function Playlist() {
   const router = useRouter();
 
   useEffect(() => {
-    if (
-      [
-        "accessToken",
-        "refreshToken",
-        "saved",
-        "liked",
-        "loaded",
-        "sortPlaylistsKey",
-        "reversedPlaylists",
-        "sortTracksKey",
-        "reversedTracks",
-        "user",
-      ].some((value) => localStorage[value] === undefined)
-    ) {
+    if (localStorageKeys.some((value) => localStorage[value] === undefined)) {
       const theme = localStorage.theme;
       localStorage.clear();
       localStorage.theme = theme;
@@ -184,7 +142,7 @@ export default function Playlist() {
             .then((response) => response.json())
             .then((body) => {
               if (body.error) {
-                setMessage("Playlist Not Found");
+                setMessage("Playlist não encontrada");
                 return;
               }
 
@@ -203,7 +161,7 @@ export default function Playlist() {
                   display_name: body.owner.display_name,
                   id: body.owner.id,
                 },
-                images: [{ url: body.images[0].url }],
+                images: [{ url: body.images[0]?.url }],
               };
 
               setPlaylist(playlist);
@@ -219,7 +177,7 @@ export default function Playlist() {
                     added_at,
                     track: {
                       album: {
-                        images: [{ url: album.images[0].url }],
+                        images: [{ url: album.images[0]?.url }],
                         name: album.name,
                       },
                       artists: artists.map(({ name }) => ({
@@ -269,7 +227,7 @@ export default function Playlist() {
         .then((body) => {
           if (body === undefined) {
             e.target.blur();
-            return setMessage("Cant find active spotify device");
+            return setMessage("Não encontrou dispositivo spotify ativo");
           }
 
           const shuffledTracks = shuffleArray([...tracks]).map(
@@ -337,7 +295,7 @@ export default function Playlist() {
         .then((body) => {
           if (body === undefined) {
             e.target.blur();
-            return setMessage("Cant find active spotify device");
+            return setMessage("Não encontrou dispositivo spotify ativo");
           }
 
           const deviceId = body.device.id;
@@ -495,7 +453,7 @@ export default function Playlist() {
             setShowSummary(e.target.scrollTop > detailsBottom);
 
             const deltaScrollTop = e.target.scrollTop - prevScrollTop;
-            if (Math.abs(deltaScrollTop) > 100) {
+            if (Math.abs(deltaScrollTop) > 10) {
               setHeaderHidden(deltaScrollTop > 0);
               prevScrollTop = e.target.scrollTop;
             }

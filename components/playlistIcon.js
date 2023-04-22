@@ -4,38 +4,7 @@ import Image from "next/image";
 import getAccessToken from "@/functions/getAccessToken";
 import shuffleArray from "@/functions/shuffleArray";
 import styles from "@/styles/User.module.css";
-
-async function loadTracks(tracks, temp) {
-  temp = [...temp, ...tracks.items];
-
-  if (tracks.next) {
-    const url = new URL(tracks.next);
-    const baseURL = url.origin + url.pathname;
-    const requests = [];
-
-    for (let offset = 50; offset < tracks.total; offset += 50) {
-      requests.push(
-        fetch(baseURL + "?limit=50&offset=" + offset, {
-          headers: {
-            Authorization: "Bearer " + localStorage.accessToken,
-          },
-        })
-      );
-    }
-
-    const responses = await Promise.all(requests);
-
-    const bodies = await Promise.all(
-      responses.map((response) => response.json())
-    );
-
-    bodies.forEach((body) => {
-      temp = [...temp, ...body.items];
-    });
-  }
-
-  return temp;
-}
+import loadTracks from "@/functions/loadTracks";
 
 export default function PlaylistIcon({
   playlist: {
@@ -65,7 +34,7 @@ export default function PlaylistIcon({
         .then((body) => {
           if (body === undefined) {
             e.target.blur();
-            return setMessage("Cant find active spotify device");
+            return setMessage("Não encontrou dispositivo spotify ativo");
           }
 
           const deviceId = body.device.id;
@@ -151,20 +120,15 @@ export default function PlaylistIcon({
       }}
     >
       <div
-        style={
-          images[0]
-            ? {
-                backgroundImage: `url(${images[0].url})`,
-                backgroundSize: "150px 150px",
-              }
-            : { backgroundColor: "var(--primary" }
-        }
+        style={{
+          backgroundImage: `url(${images[0]?.url})`,
+        }}
         alt={name + " image"}
-        className={styles.image}
+        className={styles.playlistImage}
       >
         <div
           tabIndex={`${tabIndex + 1}`}
-          className={styles.button}
+          className={styles.playlistButton}
           onClick={play}
           onKeyUp={(e) => {
             if (e.code === "Enter") {
@@ -176,9 +140,9 @@ export default function PlaylistIcon({
         </div>
       </div>
 
-      <div className={styles.details}>
-        <div className={styles.text}>
-          <div className={styles.name}>{name}</div>
+      <div className={styles.playlistDetails}>
+        <div className={styles.playlistText}>
+          <div className={styles.playlistName}>{name}</div>
           {description || "de " + display_name}
         </div>
       </div>

@@ -12,6 +12,8 @@ import Header from "@/components/header";
 import Modal from "@/components/modal";
 import UserDetails from "@/components/userDetails";
 import UserSummary from "@/components/userSummary";
+import { localStorageKeys } from "@/functions/localStorageKeys";
+import loadPlaylists from "@/functions/loadPlaylists";
 
 var prevScrollTop = 0;
 
@@ -42,42 +44,11 @@ const sortKeys = {
   },
 };
 
-async function loadPlaylists(playlists, temp) {
-  temp = [...temp, ...playlists.items];
-
-  if (playlists.next) {
-    const url = new URL(playlists.next);
-    const baseURL = url.origin + url.pathname;
-    const requests = [];
-
-    for (let offset = 50; offset < playlists.total; offset += 50) {
-      requests.push(
-        fetch(baseURL + "?limit=50&offset=" + offset, {
-          headers: {
-            Authorization: "Bearer " + localStorage.accessToken,
-          },
-        })
-      );
-    }
-
-    const responses = await Promise.all(requests);
-
-    const bodies = await Promise.all(
-      responses.map((response) => response.json())
-    );
-
-    bodies.forEach((body) => {
-      temp = [...temp, ...body.items];
-    });
-  }
-
-  return temp;
-}
-
 export default function User() {
   const [user, setUser] = useState();
   const [total, setTotal] = useState();
   const [playlists, setPlaylists] = useState([]);
+  const [following, setFollowing] = useState();
 
   const [filter, setFilter] = useState("");
   const [sortKey, setSortKey] = useState();
@@ -112,20 +83,7 @@ export default function User() {
   const router = useRouter();
 
   useEffect(() => {
-    if (
-      [
-        "accessToken",
-        "refreshToken",
-        "saved",
-        "liked",
-        "loaded",
-        "sortPlaylistsKey",
-        "reversedPlaylists",
-        "sortTracksKey",
-        "reversedTracks",
-        "user",
-      ].some((value) => localStorage[value] === undefined)
-    ) {
+    if (localStorageKeys.some((value) => localStorage[value] === undefined)) {
       const theme = localStorage.theme;
       localStorage.clear();
       localStorage.theme = theme;
@@ -141,6 +99,10 @@ export default function User() {
 
       const { userId } = router.query;
 
+      const following = JSON.parse(localStorage.following);
+
+      setFollowing(Boolean(following[userId]));
+
       if (userId !== undefined) {
         if (userId === JSON.parse(localStorage.user).id)
           router.replace("/home");
@@ -153,14 +115,13 @@ export default function User() {
             })
               .then((response) => response.json())
               .then((body) => {
-                console.log(body);
                 const user = {
+                  id: body.id,
                   display_name: body.display_name,
-                  images: [{ url: body.images[0].url }],
+                  images: [{ url: body.images[0]?.url }],
                   followers: { total: body.followers.total },
                 };
                 setUser(user);
-                localStorage.user = JSON.stringify(user);
               });
 
             fetch(
@@ -176,7 +137,7 @@ export default function User() {
               .then((response) => response.json())
               .then((body) => {
                 if (body.error) {
-                  setError("User Not Found");
+                  setError("Usuário não encontrado");
                   console.error(body.error.message);
                 } else {
                   setTotal(body.total);
@@ -195,19 +156,10 @@ export default function User() {
                         id,
                         tracks: { total },
                         owner: { display_name },
-                        images: [{ url: images[0].url }],
+                        images: [{ url: images[0]?.url }],
                       })
                     );
-                    setPlaylists([
-                      ...playlists,
-                      ...Object.values(JSON.parse(localStorage.liked)),
-                    ]);
-
-                    const saved = {};
-                    playlists.forEach((playlist) => {
-                      saved[playlist.id] = playlist;
-                    });
-                    localStorage.saved = JSON.stringify(saved);
+                    setPlaylists(playlists);
                   });
                 }
               });
@@ -229,7 +181,7 @@ export default function User() {
       localStorage.reversedPlaylists = JSON.stringify(reversed);
   }, [reversed]);
 
-  function clearError() {
+  function clearMessage() {
     setMessage("");
   }
 
@@ -241,7 +193,25 @@ export default function User() {
     setReversed((prev) => !prev);
   }
 
-  console.log(user, playlists);
+  function share(e) {
+    navigator.clipboard.writeText(location.origin + "/user/" + user.id);
+    e.target.blur();
+    setMessage("Adicionado a área de transferência");
+  }
+
+  function switchFollowing() {
+    setFollowing((prev) => {
+      const { userId } = router.query;
+
+      const following = JSON.parse(localStorage.following);
+
+      if (prev) delete following[userId];
+      else following[userId] = user;
+
+      localStorage.following = JSON.stringify(following);
+      return !prev;
+    });
+  }
 
   return (
     <>
@@ -250,7 +220,7 @@ export default function User() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      {message && <Modal {...{ theme, message, clearError }} />}
+      {message && <Modal {...{ theme, message, clearMessage }} />}
       <div
         className={[
           "container ",
@@ -271,6 +241,9 @@ export default function User() {
                 setSortKey,
                 filter,
                 setFilter,
+                share,
+                following,
+                switchFollowing,
               }}
             />
           )}
@@ -283,7 +256,7 @@ export default function User() {
             setShowSummary(e.target.scrollTop > detailsBottom);
 
             const deltaScrollTop = e.target.scrollTop - prevScrollTop;
-            if (Math.abs(deltaScrollTop) > 100) {
+            if (Math.abs(deltaScrollTop) > 10) {
               setHeaderHidden(deltaScrollTop > 0);
               prevScrollTop = e.target.scrollTop;
             }
@@ -300,6 +273,9 @@ export default function User() {
               filter,
               setFilter,
               total,
+              share,
+              following,
+              switchFollowing,
             }}
           />
           <div className={styles.playlists}>

@@ -32,11 +32,14 @@ export default function Callback() {
             localStorage.saved = "{}";
             localStorage.liked = "{}";
             localStorage.loaded = "{}";
-            localStorage.sortPlaylistsKey = "Author";
-            localStorage.reversedPlaylists = "false";
-            localStorage.sortTracksKey = "Date";
-            localStorage.reversedTracks = "false";
-            localStorage.user = "null";
+            localStorage.following = "{}";
+            localStorage.sortPlaylistsKey = "Criador";
+            localStorage.reversedPlaylists = false;
+            localStorage.sortTracksKey = "Data";
+            localStorage.reversedTracks = false;
+            localStorage.sortFollowingKey = "Nome";
+            localStorage.reversedFollowing = false;
+            localStorage.user = null;
             localStorage.expiresAt = (
               body.expires_in * 1000 +
               new Date().getTime()

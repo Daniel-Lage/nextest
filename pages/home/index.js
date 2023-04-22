@@ -12,6 +12,8 @@ import Header from "@/components/header";
 import Modal from "@/components/modal";
 import UserDetails from "@/components/userDetails";
 import UserSummary from "@/components/userSummary";
+import { localStorageKeys } from "@/functions/localStorageKeys";
+import loadPlaylists from "@/functions/loadPlaylists";
 
 var prevScrollTop = 0;
 
@@ -42,42 +44,11 @@ const sortKeys = {
   },
 };
 
-async function loadPlaylists(playlists, temp) {
-  temp = [...temp, ...playlists.items];
-
-  if (playlists.next) {
-    const url = new URL(playlists.next);
-    const baseURL = url.origin + url.pathname;
-    const requests = [];
-
-    for (let offset = 50; offset < playlists.total; offset += 50) {
-      requests.push(
-        fetch(baseURL + "?limit=50&offset=" + offset, {
-          headers: {
-            Authorization: "Bearer " + localStorage.accessToken,
-          },
-        })
-      );
-    }
-
-    const responses = await Promise.all(requests);
-
-    const bodies = await Promise.all(
-      responses.map((response) => response.json())
-    );
-
-    bodies.forEach((body) => {
-      temp = [...temp, ...body.items];
-    });
-  }
-
-  return temp;
-}
-
-export default function User() {
+export default function Home() {
   const [user, setUser] = useState();
   const [total, setTotal] = useState();
   const [playlists, setPlaylists] = useState([]);
+  const [following, setFollowing] = useState([]);
 
   const [filter, setFilter] = useState("");
   const [sortKey, setSortKey] = useState();
@@ -112,20 +83,7 @@ export default function User() {
   const router = useRouter();
 
   useEffect(() => {
-    if (
-      [
-        "accessToken",
-        "refreshToken",
-        "saved",
-        "liked",
-        "loaded",
-        "sortPlaylistsKey",
-        "reversedPlaylists",
-        "sortTracksKey",
-        "reversedTracks",
-        "user",
-      ].some((value) => localStorage[value] === undefined)
-    ) {
+    if (localStorageKeys.some((value) => localStorage[value] === undefined)) {
       const theme = localStorage.theme;
       localStorage.clear();
       localStorage.theme = theme;
@@ -145,6 +103,7 @@ export default function User() {
       setReversed(JSON.parse(localStorage.reversedPlaylists));
 
       setUser(JSON.parse(localStorage.user));
+      setFollowing(Object.values(JSON.parse(localStorage.following)));
 
       getAccessToken((accessToken) => {
         fetch("https://api.spotify.com/v1/me", {
@@ -154,11 +113,10 @@ export default function User() {
         })
           .then((response) => response.json())
           .then((body) => {
-            console.log(body.followers);
             const user = {
               id: body.id,
               display_name: body.display_name,
-              images: [{ url: body.images[0].url }],
+              images: [{ url: body.images[0]?.url }],
               followers: { total: body.followers.total },
             };
             setUser(user);
@@ -191,7 +149,7 @@ export default function User() {
                     id,
                     tracks: { total },
                     owner: { display_name },
-                    images: [{ url: images[0].url }],
+                    images: [{ url: images[0]?.url }],
                   })
                 );
                 setPlaylists([
@@ -224,7 +182,7 @@ export default function User() {
       localStorage.reversedPlaylists = JSON.stringify(reversed);
   }, [reversed]);
 
-  function clearError() {
+  function clearMessage() {
     setMessage("");
   }
 
@@ -239,6 +197,16 @@ export default function User() {
     setReversed((prev) => !prev);
   }
 
+  function share(e) {
+    navigator.clipboard.writeText(location.origin + "/user/" + user.id);
+    e.target.blur();
+    setMessage("Adicionado a área de transferência");
+  }
+
+  function goFollowing() {
+    router.replace("/following");
+  }
+
   return (
     <>
       <Head>
@@ -246,7 +214,7 @@ export default function User() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      {message && <Modal {...{ theme, message, clearError }} />}
+      {message && <Modal {...{ theme, message, clearMessage }} />}
       <div
         className={[
           "container ",
@@ -268,6 +236,7 @@ export default function User() {
                 setSortKey,
                 filter,
                 setFilter,
+                share,
               }}
             />
           )}
@@ -280,7 +249,7 @@ export default function User() {
             setShowSummary(e.target.scrollTop > detailsBottom);
 
             const deltaScrollTop = e.target.scrollTop - prevScrollTop;
-            if (Math.abs(deltaScrollTop) > 100) {
+            if (Math.abs(deltaScrollTop) > 10) {
               setHeaderHidden(deltaScrollTop > 0);
               prevScrollTop = e.target.scrollTop;
             }
@@ -298,6 +267,9 @@ export default function User() {
               filter,
               setFilter,
               total,
+              share,
+              following,
+              goFollowing,
             }}
           />
           <div className={styles.playlists}>
