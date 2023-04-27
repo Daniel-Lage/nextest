@@ -36,11 +36,11 @@ export default function UserDetails({
           <>
             <div className={styles.title}>{user.display_name}</div>
             <div className={styles.subtitle}>
-              {user.followers.total} seguidores -
+              {user.followers.total} seguidores
               {total ? (
                 <>
                   <span className={styles.following} onClick={goFollowing}>
-                    {self && following.length ? `${following.length} seguindo` : false}
+                    {self && following.length ? ` - ${following.length} seguindo` : false}
                   </span>
                   - {total} playlists
                 </>
