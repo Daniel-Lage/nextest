@@ -40,7 +40,7 @@ export default function UserDetails({
               {total ? (
                 <>
                   <span className={styles.following} onClick={goFollowing}>
-                    {self ? `${following.length} seguindo` : false}
+                    {self && following.length ? `${following.length} seguindo` : false}
                   </span>
                   - {total} playlists
                 </>
