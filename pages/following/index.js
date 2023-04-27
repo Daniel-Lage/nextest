@@ -183,7 +183,7 @@ export default function User() {
           />
           <div className={styles.playlists}>
             {sortedFollowing.map((value) => (
-              <UserIcon user={value} />
+              <UserIcon user={value} key={value.id}/>
             ))}
           </div>
         </div>
