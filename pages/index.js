@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 import Image from "next/image";
 import Head from "next/head";
 import Header from "@/components/header";
+import { localStorageKeys } from "@/functions/localStorageKeys";
 
 const themes = ["blue", "pink", "lime", "mono"];
 
@@ -15,20 +16,7 @@ export default function Start() {
   const router = useRouter();
 
   useEffect(() => {
-    if (
-      [
-        "accessToken",
-        "refreshToken",
-        "saved",
-        "liked",
-        "loaded",
-        "sortPlaylistsKey",
-        "reversedPlaylists",
-        "sortTracksKey",
-        "reversedTracks",
-        "user",
-      ].every((value) => localStorage[value] !== undefined)
-    ) {
+    if (localStorageKeys.every((value) => localStorage[value] !== undefined)) {
       router.replace("/home");
     } else {
       if (themes.some((t) => t === localStorage.theme)) {
