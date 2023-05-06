@@ -39,10 +39,10 @@ export default function UserDetails({
               {user.followers.total} seguidores
               {self && following.length > 0 && (
                 <span className={styles.following} onClick={goFollowing}>
-                  {` - ${following.length} seguindo`}
+                  {`${following.length} seguindo`}
                 </span>
               )}
-              {total > 0 && ` - ${total} playlists`}
+              {total > 0 && `${total} playlists`}
             </div>
           </>
 
@@ -67,7 +67,7 @@ export default function UserDetails({
             />
             <div
               tabIndex={`${9 + Object.keys(sortKeys).length}`}
-              className="headerButton"
+              className="subheaderButton"
               onClick={share}
               onKeyUp={(e) => {
                 if (e.code === "Enter") {
@@ -75,7 +75,7 @@ export default function UserDetails({
                 }
               }}
             >
-              <ButtonSvg name="share" size={20} />
+              <ButtonSvg name="share" size={15} />
             </div>
             {self || (
               <div

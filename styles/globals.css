@@ -280,7 +280,7 @@ a {
   width: 160px;
   height: 25px;
   background-color: var(--background);
-  border-radius: 5px;
+  border-radius: 12px;
 }
 .filter:focus-within {
   outline: auto;
@@ -328,7 +328,7 @@ a {
   cursor: pointer;
   user-select: none;
   background-color: var(--button);
-  border-radius: 5px;
+  border-radius: 12px;
   color: black;
 }
 .sorterOpener.open {
@@ -354,8 +354,8 @@ a {
   padding-bottom: 0px;
   text-align: center;
   transition: transform 50ms linear;
-  border-bottom-left-radius: 5px;
-  border-bottom-right-radius: 5px;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
   background-color: var(--primary);
   transform-origin: top;
   transform: scaleY(0);
@@ -375,11 +375,9 @@ a {
 
 .sorterMenuItem {
   flex: 1;
-  width: 150px;
   margin-top: 5px;
   cursor: pointer;
   color: var(--button);
-  border-radius: 5px;
   user-select: none;
 }
 .sorterMenuItem:hover,
