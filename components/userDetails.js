@@ -36,13 +36,13 @@ export default function UserDetails({
           <>
             <div className={styles.title}>{user.display_name}</div>
             <div className={styles.subtitle}>
-              {user.followers.total} seguidores
+              <span>{user.followers.total} seguidores</span>
               {self && following.length > 0 && (
                 <span className={styles.following} onClick={goFollowing}>
                   {`${following.length} seguindo`}
                 </span>
               )}
-              {total > 0 && `${total} playlists`}
+              <span>{total > 0 && `${total} playlists`}</span>
             </div>
           </>
 
