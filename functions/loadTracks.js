@@ -1,6 +1,6 @@
 const batchSize = 100;
-export default async function loadTracks(tracks, temp) {
-  var temp = [...temp, ...tracks.items];
+export default async function loadTracks(tracks) {
+  var temp = [...tracks.items];
 
   if (tracks.next) {
     const url = new URL(tracks.next);

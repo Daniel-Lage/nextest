@@ -2,12 +2,12 @@ import styles from "@/styles/User.module.css";
 import Sorter from "./sorter";
 import Filter from "./filter";
 import ButtonSvg from "./buttonSvg";
+import { sortKeys } from "@/constants/playlistSortKeys";
 
 export default function UserSummary({
   self,
   user,
   sortKey,
-  sortKeys,
   reverse,
   reversed,
   setSortKey,

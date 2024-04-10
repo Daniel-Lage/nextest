@@ -58,19 +58,18 @@ export default function Sorter({
               </div>
             ))}
         </div>
-      </div>
-      <div
-        tabIndex={`${tabIndex + Object.keys(sortKeys).length}`}
-        className="subheaderButton"
-        onClick={reverse}
-        onKeyUp={(e) => {
-          if (e.code === "Enter") {
-            reverse();
-          }
-        }}
-        onFocus={() => setOpen(false)}
-      >
-        <ButtonSvg name={reversed ? "down" : "up"} size={15} />
+        <div
+          tabIndex={`${tabIndex + Object.keys(sortKeys).length}`}
+          onClick={reverse}
+          onKeyUp={(e) => {
+            if (e.code === "Enter") {
+              reverse();
+            }
+          }}
+          onFocus={() => setOpen(false)}
+        >
+          <ButtonSvg name={reversed ? "down" : "up"} size={19} />
+        </div>
       </div>
     </div>
   );

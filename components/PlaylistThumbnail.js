@@ -6,7 +6,7 @@ import shuffleArray from "@/functions/shuffleArray";
 import styles from "@/styles/User.module.css";
 import loadTracks from "@/functions/loadTracks";
 
-export default function PlaylistIcon({
+export default function PlaylistThumbnail({
   playlist: {
     name,
     description,

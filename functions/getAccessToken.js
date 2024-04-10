@@ -1,6 +1,6 @@
-export default function getAccessToken(Function) {
+export default async function getAccessToken() {
   if (parseInt(localStorage.expiresAt) < new Date().getTime()) {
-    fetch("https://accounts.spotify.com/api/token", {
+    const response = await fetch("https://accounts.spotify.com/api/token", {
       method: "POST",
       body: new URLSearchParams({
         refresh_token: localStorage.refreshToken,
@@ -11,19 +11,19 @@ export default function getAccessToken(Function) {
         Authorization:
           "Basic ZWQxMjMyODcxMTMzNDVjNDkzMzhkMWNmMjBiZWM5MGU6NjE2Mzg1ZjJlYzNkNGQ2M2E3OWJkMWIxZGZhM2M4MGM=",
       },
-    })
-      .then((response) => response.json())
-      .then((body) => {
-        if (body.error) {
-          console.error(body.error.message);
-        } else {
-          localStorage.accessToken = body.access_token;
-          localStorage.expiresAt = (3000000 + new Date().getTime()).toString();
+    });
 
-          Function(localStorage.accessToken);
-        }
-      });
+    const body = await response.json();
+
+    if (body.error) {
+      console.error(body.error.message);
+    } else {
+      localStorage.accessToken = body.access_token;
+      localStorage.expiresAt = (3000000 + new Date().getTime()).toString();
+
+      return localStorage.accessToken;
+    }
   } else {
-    Function(localStorage.accessToken);
+    return localStorage.accessToken;
   }
 }

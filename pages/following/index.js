@@ -9,7 +9,7 @@ import Header from "@/components/header";
 import Modal from "@/components/modal";
 import UserDetails from "@/components/userDetails";
 import UserSummary from "@/components/userSummary";
-import { localStorageKeys } from "@/functions/localStorageKeys";
+import { localStorageKeys } from "@/constants/localStorageKeys";
 import UserIcon from "@/components/userIcon";
 
 var prevScrollTop = 0;
@@ -183,7 +183,7 @@ export default function User() {
           />
           <div className={styles.playlists}>
             {sortedFollowing.map((value) => (
-              <UserIcon user={value} key={value.id}/>
+              <UserIcon user={value} key={value.id} />
             ))}
           </div>
         </div>

@@ -3,18 +3,18 @@ import styles from "@/styles/Playlist.module.css";
 import Filter from "./filter";
 import Sorter from "./sorter";
 import ButtonSvg from "./buttonSvg";
+import { sortKeys } from "@/constants/trackSortKeys";
 
 export default function PlaylistDetails({
   playlist,
   sortKey,
-  sortKeys,
   reverse,
   open,
   reversed,
   setSortKey,
   filter,
   setFilter,
-  play,
+  playDefault,
   status,
   switchLiked,
   clearFilter,
@@ -22,7 +22,7 @@ export default function PlaylistDetails({
 }) {
   return (
     playlist && (
-      <div className="subheader">
+      <div className={styles.subheader}>
         <img
           src={playlist.images[0].url}
           alt={playlist.name + " image"}
@@ -70,10 +70,10 @@ export default function PlaylistDetails({
             <div
               tabIndex={`${6 + Object.keys(sortKeys).length}`}
               className="headerButton"
-              onClick={play}
+              onClick={playDefault}
               onKeyUp={(e) => {
                 if (e.code === "Enter") {
-                  play(e);
+                  playDefault(e);
                 }
               }}
             >

@@ -2,17 +2,17 @@ import styles from "@/styles/Playlist.module.css";
 import Sorter from "./sorter";
 import Filter from "./filter";
 import ButtonSvg from "./buttonSvg";
+import { sortKeys } from "@/constants/trackSortKeys";
 
 export default function playlistSummary({
   playlist,
   sortKey,
-  sortKeys,
   reverse,
   reversed,
   setSortKey,
   filter,
   setFilter,
-  play,
+  playDefault,
   status,
   switchLiked,
   clearFilter,
@@ -44,10 +44,10 @@ export default function playlistSummary({
           <div
             tabIndex={`${6 + Object.keys(sortKeys).length}`}
             className="headerButton"
-            onClick={play}
+            onClick={playDefault}
             onKeyUp={(e) => {
               if (e.code === "Enter") {
-                play(e);
+                playDefault(e);
               }
             }}
           >

@@ -36,7 +36,7 @@ export default function Track({
           <>
             <div className={styles.album}>{album.name}</div>
             <div className={styles.artists}>
-              {artists.map((artist) => artist.name).join(" ")}
+              {artists.map((artist) => artist.name).join(", ")}
             </div>
           </>
         )}

@@ -34,7 +34,7 @@ export default function Filter({ filter, setFilter, clearFilter, tabIndex }) {
             }
           }}
         >
-          <ButtonSvg name="close" size={20} />
+          <ButtonSvg name="close" color="white" size={20} />
         </div>
       )}
     </div>

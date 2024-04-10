@@ -7,42 +7,16 @@ import styles from "@/styles/User.module.css";
 
 import getAccessToken from "@/functions/getAccessToken";
 
-import PlaylistIcon from "@/components/playlistIcon";
+import PlaylistThumbnail from "@/components/PlaylistThumbnail";
 import Header from "@/components/header";
 import Modal from "@/components/modal";
 import UserDetails from "@/components/userDetails";
 import UserSummary from "@/components/userSummary";
-import { localStorageKeys } from "@/functions/localStorageKeys";
+import { localStorageKeys } from "@/constants/localStorageKeys";
+import { sortKeys } from "@/constants/playlistSortKeys";
 import loadPlaylists from "@/functions/loadPlaylists";
 
 var prevScrollTop = 0;
-
-const sortKeys = {
-  Criador: (a, b) => {
-    const A = a.owner.display_name.toLowerCase();
-    const B = b.owner.display_name.toLowerCase();
-
-    if (A > B) return 1;
-    if (A < B) return -1;
-
-    return sortKeys.Nome(a, b);
-  },
-  Nome: (a, b) => {
-    const A = a.name.toLowerCase();
-    const B = b.name.toLowerCase();
-
-    if (A > B) return 1;
-    if (A < B) return -1;
-
-    return 0;
-  },
-  Tamanho: (a, b) => {
-    const A = a.tracks.total;
-    const B = b.tracks.total;
-
-    return B - A;
-  },
-};
 
 export default function Home() {
   const [user, setUser] = useState();
@@ -105,67 +79,75 @@ export default function Home() {
       setUser(JSON.parse(localStorage.user));
       setFollowing(Object.values(JSON.parse(localStorage.following)));
 
-      getAccessToken((accessToken) => {
-        fetch("https://api.spotify.com/v1/me", {
+      async function fetchData() {
+        const accessToken = await getAccessToken();
+
+        const meResponse = await fetch("https://api.spotify.com/v1/me", {
           headers: {
             Authorization: "Bearer " + accessToken,
           },
-        })
-          .then((response) => response.json())
-          .then((body) => {
-            const user = {
-              id: body.id,
-              display_name: body.display_name,
-              images: [{ url: body.images[0]?.url }],
-              followers: { total: body.followers.total },
-            };
-            setUser(user);
-            localStorage.user = JSON.stringify(user);
-          });
+        });
 
-        fetch("https://api.spotify.com/v1/me/playlists?limit=50", {
-          headers: {
-            Authorization: "Bearer " + accessToken,
-          },
-        })
-          .then((response) => response.json())
-          .then((body) => {
-            if (body.error) {
-              console.error(body.error.message);
-            } else {
-              setTotal(body.total);
-              loadPlaylists(body, []).then((playlists) => {
-                playlists = playlists.map(
-                  ({
-                    name,
-                    description,
-                    id,
-                    tracks: { total },
-                    owner: { display_name },
-                    images,
-                  }) => ({
-                    name,
-                    description,
-                    id,
-                    tracks: { total },
-                    owner: { display_name },
-                    images: [{ url: images[0]?.url }],
-                  })
-                );
-                setPlaylists([
-                  ...playlists,
-                  ...Object.values(JSON.parse(localStorage.liked)),
-                ]);
+        const meBody = await meResponse.json();
 
-                const saved = {};
-                playlists.forEach((playlist) => {
-                  saved[playlist.id] = playlist;
-                });
-                localStorage.saved = JSON.stringify(saved);
-              });
-            }
+        const user = {
+          id: meBody.id,
+          display_name: meBody.display_name,
+          images: [{ url: meBody.images[0]?.url }],
+          followers: { total: meBody.followers.total },
+        };
+
+        setUser(user);
+        localStorage.user = JSON.stringify(user);
+
+        const playlistsResponse = await fetch(
+          "https://api.spotify.com/v1/me/playlists?limit=50",
+          {
+            headers: {
+              Authorization: "Bearer " + accessToken,
+            },
+          }
+        );
+
+        const playlistsBody = await playlistsResponse.json();
+
+        if (playlistsBody.error) {
+          console.error(playlistsBody.error.message);
+        } else {
+          setTotal(playlistsBody.total);
+          loadPlaylists(playlistsBody, []).then((playlists) => {
+            playlists = playlists.map(
+              ({
+                name,
+                description,
+                id,
+                tracks: { total },
+                owner: { display_name },
+                images,
+              }) => ({
+                name,
+                description,
+                id,
+                tracks: { total },
+                owner: { display_name },
+                images: [{ url: images[0]?.url }],
+              })
+            );
+            setPlaylists([
+              ...playlists,
+              ...Object.values(JSON.parse(localStorage.liked)),
+            ]);
+
+            const saved = {};
+            playlists.forEach((playlist) => {
+              saved[playlist.id] = playlist;
+            });
+            localStorage.saved = JSON.stringify(saved);
           });
-      });
+        }
+      }
+
+      fetchData();
     }
   }, [router]);
 
@@ -230,7 +212,6 @@ export default function Home() {
               {...{
                 user,
                 sortKey,
-                sortKeys,
                 reverse,
                 reversed,
                 setSortKey,
@@ -260,7 +241,6 @@ export default function Home() {
             {...{
               user,
               sortKey,
-              sortKeys,
               reverse,
               reversed,
               setSortKey,
@@ -274,7 +254,7 @@ export default function Home() {
           />
           <div className={styles.playlists}>
             {sortedPlaylists.map((playlist, index) => (
-              <PlaylistIcon
+              <PlaylistThumbnail
                 tabIndex={10 + Object.keys(sortKeys).length + index * 2}
                 playlist={playlist}
                 key={playlist.id}

@@ -289,7 +289,8 @@ a {
 .textInput {
   width: 130px;
   height: 25px;
-  padding-left: 5px;
+  text-align: center;
+  border-radius: 12px;
   border: 0;
   background-color: transparent;
   color: hsl(0, 0%, 100%);
@@ -299,25 +300,25 @@ a {
   display: flex;
   width: 25px;
   aspect-ratio: 1;
-  background-color: var(--button);
   align-items: center;
   justify-content: center;
   cursor: pointer;
   user-select: none;
+  color: hsl(0, 0%, 100%);
   border-top-right-radius: 5px;
   border-bottom-right-radius: 5px;
-}
-.filterButton:hover,
-.filterButton:focus-visible {
-  background-color: var(--button-hover);
-}
-.filterButton:active {
-  background-color: var(--button-active);
 }
 
 .sorter {
   display: flex;
-  justify-content: flex-start;
+  background-color: var(--button);
+  border-radius: 12px;
+  padding-right: 2px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+  color: black;
 }
 .sorterOpener {
   width: 160px;
@@ -326,14 +327,13 @@ a {
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  border-bottom-left-radius: 12px;
+  border-top-left-radius: 12px;
   user-select: none;
-  background-color: var(--button);
-  border-radius: 12px;
   color: black;
 }
 .sorterOpener.open {
   border-bottom-left-radius: 0px;
-  border-bottom-right-radius: 0px;
 }
 .sorterOpener:hover,
 .sorterOpener:focus-visible {

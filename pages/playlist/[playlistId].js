@@ -11,46 +11,12 @@ import Track from "@/components/track";
 import Modal from "@/components/modal";
 import PlaylistDetails from "@/components/playlistDetails";
 import PlaylistSummary from "@/components/playlistSummary";
-import { localStorageKeys } from "@/functions/localStorageKeys";
+import { localStorageKeys } from "@/constants/localStorageKeys";
+import { sortKeys } from "@/constants/trackSortKeys";
 import loadTracks from "@/functions/loadTracks";
+import play from "@/functions/play";
 
 var prevScrollTop = 0;
-
-const sortKeys = {
-  Artista: (a, b) => {
-    const A = a.track.artists[0].name.toLowerCase();
-    const B = b.track.artists[0].name.toLowerCase();
-
-    if (A > B) return 1;
-    if (A < B) return -1;
-
-    return sortKeys.Album(a, b);
-  },
-  Album: (a, b) => {
-    const A = a.track.album.name.toLowerCase();
-    const B = b.track.album.name.toLowerCase();
-
-    if (A > B) return 1;
-    if (A < B) return -1;
-
-    return b.track.disc_number - a.track.disc_number;
-  },
-  Nome: (a, b) => {
-    const A = a.track.name.toLowerCase();
-    const B = b.track.name.toLowerCase();
-
-    if (A > B) return 1;
-    if (A < B) return -1;
-
-    return sortKeys.Data(a, b);
-  },
-  Data: (a, b) => {
-    const A = new Date(a.added_at);
-    const B = new Date(b.added_at);
-
-    return B.getTime() - A.getTime();
-  },
-};
 
 export default function Playlist() {
   const [playlist, setPlaylist] = useState();
@@ -86,6 +52,8 @@ export default function Playlist() {
   const [headerHidden, setHeaderHidden] = useState();
   const [showSummary, setShowSummary] = useState();
   const [theme, setTheme] = useState();
+  const [skip, setSkip] = useState(true);
+  const [cap, setCap] = useState({ type: "duration", duration_ms: 360000 });
 
   const [message, setMessage] = useState("");
 
@@ -132,71 +100,76 @@ export default function Playlist() {
       }
       setReversed(JSON.parse(localStorage.reversedTracks));
 
-      if (playlistId !== undefined) {
-        getAccessToken((accessToken) => {
-          fetch("https://api.spotify.com/v1/playlists/" + playlistId, {
+      async function fetchData() {
+        const accessToken = await getAccessToken();
+
+        const playlistsResponse = await fetch(
+          "https://api.spotify.com/v1/playlists/" + playlistId,
+          {
             headers: {
               Authorization: "Bearer " + accessToken,
             },
+          }
+        );
+
+        const playlistsBody = await playlistsResponse.json();
+
+        if (playlistsBody.error) {
+          setMessage("Playlist não encontrada");
+          return;
+        }
+
+        const playlist = {
+          name: playlistsBody.name,
+          description: playlistsBody.description,
+          id: playlistsBody.id,
+          tracks: { total: playlistsBody.tracks.total },
+          owner: {
+            display_name: playlistsBody.owner.display_name,
+            id: playlistsBody.owner.id,
+          },
+          images: [{ url: playlistsBody.images[0]?.url }],
+        };
+
+        setPlaylist(playlist);
+
+        if (nextStatus) {
+          storage[nextStatus][playlistId] = playlist;
+          localStorage[nextStatus] = JSON.stringify(storage[nextStatus]);
+        }
+        const tracks = await loadTracks(playlistsBody.tracks);
+
+        const treatedTracks = tracks.map(
+          ({
+            added_at,
+            track: { album, artists, name, uri, duration_ms },
+          }) => ({
+            added_at,
+            track: {
+              album: {
+                images: [{ url: album.images[0]?.url }],
+                name: album.name,
+              },
+              artists: artists.map(({ name }) => ({
+                name,
+              })),
+              name,
+              uri,
+              duration_ms,
+            },
           })
-            .then((response) => response.json())
-            .then((body) => {
-              if (body.error) {
-                setMessage("Playlist não encontrada");
-                return;
-              }
+        );
 
-              const tracks = {
-                next: body.tracks.next,
-                items: body.tracks.items,
-                total: body.tracks.total,
-              };
+        setTracks(treatedTracks);
 
-              const playlist = {
-                name: body.name,
-                description: body.description,
-                id: body.id,
-                tracks: { total: body.tracks.total },
-                owner: {
-                  display_name: body.owner.display_name,
-                  id: body.owner.id,
-                },
-                images: [{ url: body.images[0]?.url }],
-              };
+        if (nextStatus) {
+          loaded[playlistId] = treatedTracks;
+          localStorage.loaded = JSON.stringify(loaded);
+        }
+      }
 
-              setPlaylist(playlist);
-
-              if (nextStatus) {
-                storage[nextStatus][playlistId] = playlist;
-                localStorage[nextStatus] = JSON.stringify(storage[nextStatus]);
-              }
-
-              loadTracks(tracks, []).then((tracks) => {
-                tracks = tracks.map(
-                  ({ added_at, track: { album, artists, name, uri } }) => ({
-                    added_at,
-                    track: {
-                      album: {
-                        images: [{ url: album.images[0]?.url }],
-                        name: album.name,
-                      },
-                      artists: artists.map(({ name }) => ({
-                        name,
-                      })),
-                      name,
-                      uri,
-                    },
-                  })
-                );
-                setTracks(tracks);
-
-                if (nextStatus) {
-                  loaded[playlistId] = tracks;
-                  localStorage.loaded = JSON.stringify(loaded);
-                }
-              });
-            });
-        });
+      if (playlistId !== undefined) {
+        fetchData();
       }
     }
   }, [router]);
@@ -214,145 +187,12 @@ export default function Playlist() {
       localStorage.reversedTracks = JSON.stringify(reversed);
   }, [reversed]);
 
-  function play(e) {
-    getAccessToken((accessToken) => {
-      fetch("https://api.spotify.com/v1/me/player", {
-        headers: {
-          Authorization: "Bearer " + accessToken,
-        },
-      })
-        .then((response) => {
-          if (response.status === 200) return response.json();
-        })
-        .then((body) => {
-          if (body === undefined) {
-            e.target.blur();
-            return setMessage("Não encontrou dispositivo spotify ativo");
-          }
-
-          const shuffledTracks = shuffleArray([...tracks]).map(
-            (value) => value.track.uri
-          );
-
-          const deviceId = body.device.id;
-
-          fetch(
-            "https://api.spotify.com/v1/me/player/queue?" +
-              new URLSearchParams({
-                uri: shuffledTracks.pop(),
-                device_id: deviceId,
-              }).toString(),
-            {
-              method: "POST",
-              headers: {
-                Authorization: "Bearer " + accessToken,
-              },
-            }
-          ).then(() => {
-            fetch(
-              "https://api.spotify.com/v1/me/player/next?" +
-                new URLSearchParams({
-                  device_id: deviceId,
-                }).toString(),
-              {
-                method: "POST",
-                headers: {
-                  Authorization: "Bearer " + accessToken,
-                },
-              }
-            ).then(() => {
-              shuffledTracks.forEach((track) => {
-                fetch(
-                  "https://api.spotify.com/v1/me/player/queue?" +
-                    new URLSearchParams({
-                      uri: track,
-                      device_id: deviceId,
-                    }).toString(),
-                  {
-                    method: "POST",
-                    headers: {
-                      Authorization: "Bearer " + accessToken,
-                    },
-                  }
-                );
-              });
-            });
-          });
-        });
-    });
+  function playDefault(e) {
+    play(e, setMessage, tracks, skip, cap);
   }
 
-  function playFrom(e, uri) {
-    getAccessToken((accessToken) => {
-      fetch("https://api.spotify.com/v1/me/player", {
-        headers: {
-          Authorization: "Bearer " + accessToken,
-        },
-      })
-        .then((response) => {
-          if (response.status === 200) return response.json();
-        })
-        .then((body) => {
-          if (body === undefined) {
-            e.target.blur();
-            return setMessage("Não encontrou dispositivo spotify ativo");
-          }
-
-          const deviceId = body.device.id;
-
-          const shuffledTracks = shuffleArray([...tracks]).map(
-            (value) => value.track.uri
-          );
-
-          shuffledTracks.splice(
-            shuffledTracks.findIndex((value) => value === uri),
-            1
-          );
-
-          fetch(
-            "https://api.spotify.com/v1/me/player/queue?" +
-              new URLSearchParams({
-                uri: uri,
-                device_id: deviceId,
-              }).toString(),
-            {
-              method: "POST",
-              headers: {
-                Authorization: "Bearer " + accessToken,
-              },
-            }
-          ).then(() => {
-            fetch(
-              "https://api.spotify.com/v1/me/player/next?" +
-                new URLSearchParams({
-                  device_id: deviceId,
-                }).toString(),
-              {
-                method: "POST",
-                headers: {
-                  Authorization: "Bearer " + accessToken,
-                },
-              }
-            ).then(() => {
-              shuffledTracks.forEach((track) => {
-                fetch(
-                  "https://api.spotify.com/v1/me/player/queue?" +
-                    new URLSearchParams({
-                      uri: track,
-                      device_id: deviceId,
-                    }).toString(),
-                  {
-                    method: "POST",
-                    headers: {
-                      Authorization: "Bearer " + accessToken,
-                    },
-                  }
-                );
-              });
-            });
-          });
-        });
-    });
+  function playFrom(e, firstTrack) {
+    play(e, setMessage, tracks, skip, cap, firstTrack);
   }
 
   function goHome() {
@@ -371,7 +211,7 @@ export default function Playlist() {
     setFilter("");
   }
 
-  function share() {
+  function share(e) {
     navigator.clipboard.writeText(location);
     e.target.blur();
     setMessage("Adicionado a área de transferência");
@@ -429,14 +269,13 @@ export default function Playlist() {
               {...{
                 playlist,
                 sortKey,
-                sortKeys,
                 reverse,
                 open,
                 reversed,
                 setSortKey,
                 filter,
                 setFilter,
-                play,
+                playDefault,
                 status,
                 switchLiked,
                 clearFilter,
@@ -463,14 +302,13 @@ export default function Playlist() {
             {...{
               playlist,
               sortKey,
-              sortKeys,
               reverse,
               open,
               reversed,
               setSortKey,
               filter,
               setFilter,
-              play,
+              playDefault,
               status,
               setStatus,
               switchLiked,
@@ -486,7 +324,7 @@ export default function Playlist() {
               key={index}
               track={track}
               index={index + 1}
-              play={(e) => playFrom(e, track.track.uri)}
+              play={(e) => playFrom(e, track)}
               vertical={vertical}
             />
           ))}

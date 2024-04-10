@@ -1,5 +1,4 @@
 .body {
-  padding-top: 50px;
   display: flex;
   flex-direction: column;
   padding-bottom: 20px;
@@ -9,6 +8,22 @@
   gap: 10px;
   overflow-y: scroll;
   overflow-x: hidden;
+}
+
+.subheader {
+  width: 100vw;
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+  padding-top: 60px;
+  background-color: var(--secondary);
+  flex-wrap: wrap;
+  gap: 10px;
+  z-index: 1;
+  box-shadow: 0px 0px 15px hsla(0, 0%, 0%, 0.4);
 }
 
 .image {

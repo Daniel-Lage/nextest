@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 import Image from "next/image";
 import Head from "next/head";
 import Header from "@/components/header";
-import { localStorageKeys } from "@/functions/localStorageKeys";
+import { localStorageKeys } from "@/constants/localStorageKeys";
 
 const themes = ["blue", "pink", "lime", "mono"];
 

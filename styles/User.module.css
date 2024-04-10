@@ -37,9 +37,7 @@
 }
 
 .image {
-  width: 150px;
   aspect-ratio: 1;
-  border-radius: 50%;
   box-shadow: 0px 0px 15px hsla(0, 0%, 0%, 0.4);
 }
 
@@ -49,7 +47,6 @@
   align-items: center;
   width: max(150px, 11.5vw);
   aspect-ratio: 2/3;
-  border-radius: 5px;
   user-select: none;
   cursor: pointer;
   color: var(--button);

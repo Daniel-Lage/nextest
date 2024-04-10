@@ -8,46 +8,52 @@ export default function Callback() {
 
   useEffect(() => {
     const { code } = router.query;
-    if (code) {
-      fetch("https://accounts.spotify.com/api/token", {
-        method: "POST",
-        body: new URLSearchParams({
-          code: code,
-          redirect_uri: location.origin + "/callback",
-          grant_type: "authorization_code",
-        }).toString(),
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-          Authorization:
-            "Basic ZWQxMjMyODcxMTMzNDVjNDkzMzhkMWNmMjBiZWM5MGU6NjE2Mzg1ZjJlYzNkNGQ2M2E3OWJkMWIxZGZhM2M4MGM=",
-        },
-      })
-        .then((response) => response.json())
-        .then((body) => {
-          if (body.error) {
-            console.error(body.error.message);
-          } else {
-            localStorage.accessToken = body.access_token;
-            localStorage.refreshToken = body.refresh_token;
-            localStorage.saved = "{}";
-            localStorage.liked = "{}";
-            localStorage.loaded = "{}";
-            localStorage.following = "{}";
-            localStorage.sortPlaylistsKey = "Criador";
-            localStorage.reversedPlaylists = false;
-            localStorage.sortTracksKey = "Data";
-            localStorage.reversedTracks = false;
-            localStorage.sortFollowingKey = "Nome";
-            localStorage.reversedFollowing = false;
-            localStorage.user = null;
-            localStorage.expiresAt = (
-              body.expires_in * 1000 +
-              new Date().getTime()
-            ).toString();
-          }
-          router.replace("/home");
-        });
+
+    async function fetchData() {
+      const tokenResponse = await fetch(
+        "https://accounts.spotify.com/api/token",
+        {
+          method: "POST",
+          body: new URLSearchParams({
+            code: code,
+            redirect_uri: location.origin + "/callback",
+            grant_type: "authorization_code",
+          }).toString(),
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            Authorization:
+              "Basic ZWQxMjMyODcxMTMzNDVjNDkzMzhkMWNmMjBiZWM5MGU6NjE2Mzg1ZjJlYzNkNGQ2M2E3OWJkMWIxZGZhM2M4MGM=",
+          },
+        }
+      );
+
+      const tokenBody = await tokenResponse.json();
+
+      if (tokenBody.error) {
+        console.error(tokenBody.error.message);
+      } else {
+        localStorage.accessToken = tokenBody.access_token;
+        localStorage.refreshToken = tokenBody.refresh_token;
+        localStorage.saved = "{}";
+        localStorage.liked = "{}";
+        localStorage.loaded = "{}";
+        localStorage.following = "{}";
+        localStorage.sortPlaylistsKey = "Criador";
+        localStorage.reversedPlaylists = false;
+        localStorage.sortTracksKey = "Data";
+        localStorage.reversedTracks = false;
+        localStorage.sortFollowingKey = "Nome";
+        localStorage.reversedFollowing = false;
+        localStorage.user = null;
+        localStorage.expiresAt = (
+          tokenBody.expires_in * 1000 +
+          new Date().getTime()
+        ).toString();
+      }
+      router.replace("/home");
     }
+
+    if (code) fetchData();
   }, [router]);
 
   return (
