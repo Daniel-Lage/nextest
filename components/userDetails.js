@@ -3,6 +3,7 @@ import Sorter from "./sorter";
 import Filter from "./filter";
 import ButtonSvg from "./buttonSvg";
 import { sortKeys } from "@/constants/playlistSortKeys";
+import Limiter from "./limiter";
 
 export default function UserDetails({
   self,
@@ -18,6 +19,8 @@ export default function UserDetails({
   following,
   switchFollowing,
   goFollowing,
+  limit,
+  setLimit,
 }) {
   function clearFilter() {
     setFilter("");
@@ -56,6 +59,7 @@ export default function UserDetails({
               setSortKey,
             }}
           />
+
           <div className="row">
             <Filter
               tabIndex={7 + Object.keys(sortKeys).length}

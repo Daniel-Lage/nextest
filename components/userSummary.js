@@ -37,45 +37,43 @@ export default function UserSummary({
             setSortKey,
           }}
         />
-        <div className="row">
-          <Filter
-            tabIndex={7 + Object.keys(sortKeys).length}
-            {...{
-              filter,
-              setFilter,
-              clearFilter,
-            }}
-          />
+        <Filter
+          tabIndex={7 + Object.keys(sortKeys).length}
+          {...{
+            filter,
+            setFilter,
+            clearFilter,
+          }}
+        />
+        <div
+          tabIndex={`${9 + Object.keys(sortKeys).length}`}
+          className="headerButton"
+          onClick={share}
+          onKeyUp={(e) => {
+            if (e.code === "Enter") {
+              share(e);
+            }
+          }}
+        >
+          <ButtonSvg name="share" size={20} />
+        </div>
+        {self || (
           <div
-            tabIndex={`${9 + Object.keys(sortKeys).length}`}
+            tabIndex={`${8 + Object.keys(sortKeys).length}`}
             className="headerButton"
-            onClick={share}
+            onClick={switchFollowing}
             onKeyUp={(e) => {
               if (e.code === "Enter") {
-                share(e);
+                switchFollowing();
               }
             }}
           >
-            <ButtonSvg name="share" size={20} />
+            <ButtonSvg
+              name={following ? "heart-filled" : "heart-outline"}
+              size={20}
+            />
           </div>
-          {self || (
-            <div
-              tabIndex={`${8 + Object.keys(sortKeys).length}`}
-              className="headerButton"
-              onClick={switchFollowing}
-              onKeyUp={(e) => {
-                if (e.code === "Enter") {
-                  switchFollowing();
-                }
-              }}
-            >
-              <ButtonSvg
-                name={following ? "heart-filled" : "heart-outline"}
-                size={20}
-              />
-            </div>
-          )}
-        </div>
+        )}
       </div>
     )
   );

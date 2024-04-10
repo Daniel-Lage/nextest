@@ -6,7 +6,7 @@ export default async function play(
   setMessage,
   tracks,
   skip,
-  cap = null,
+  limit = null,
   firstTrack = null
 ) {
   e.stopPropagation();
@@ -47,13 +47,23 @@ export default async function play(
 
   // code that is dumb :) fix later pls
 
-  if (cap) {
-    if ((cap.type = "duration")) {
-      if (track.track.duration_ms > cap.duration_ms) return;
+  var progress = 0;
+
+  switch (limit.type) {
+    case "None": {
+      break;
+    }
+    case "Duration": {
+      progress += track.track.duration_ms;
+      break;
+    }
+    case "Tracks": {
+      progress += 1;
+      break;
     }
   }
 
-  var totalDuration_ms = track.track.duration_ms;
+  if (progress > limit.value) return;
 
   await fetch(
     "https://api.spotify.com/v1/me/player/queue?" +
@@ -85,13 +95,18 @@ export default async function play(
     );
 
   for (const track of shuffledTracks) {
-    totalDuration_ms += track.track.duration_ms;
-
-    if (cap) {
-      if ((cap.type = "duration")) {
-        if (totalDuration_ms > cap.duration_ms) return;
+    switch (limit.type) {
+      case "Duration": {
+        progress += track.track.duration_ms;
+        break;
+      }
+      case "Tracks": {
+        progress += 1;
+        break;
       }
     }
+
+    if (progress > limit.value) return;
 
     await fetch(
       "https://api.spotify.com/v1/me/player/queue?" +

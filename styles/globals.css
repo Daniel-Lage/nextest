@@ -283,7 +283,7 @@ a {
   border-radius: 12px;
 }
 .filter:focus-within {
-  outline: auto;
+  outline: 1px solid var(--button);
 }
 
 .textInput {
@@ -296,6 +296,7 @@ a {
   color: hsl(0, 0%, 100%);
   outline: none;
 }
+
 .filterButton {
   display: flex;
   width: 25px;
@@ -313,81 +314,22 @@ a {
   display: flex;
   background-color: var(--button);
   border-radius: 12px;
-  padding-right: 2px;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  user-select: none;
-  color: black;
-}
-.sorterOpener {
-  width: 160px;
-  height: 25px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  border-bottom-left-radius: 12px;
-  border-top-left-radius: 12px;
-  user-select: none;
-  color: black;
-}
-.sorterOpener.open {
-  border-bottom-left-radius: 0px;
-}
-.sorterOpener:hover,
-.sorterOpener:focus-visible {
-  background-color: var(--button-hover);
-}
-.sorterOpener:active {
-  background-color: var(--button-active);
 }
 
-.sorterMenu {
-  position: absolute;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 160px;
-  margin-top: 25px;
-  overflow: hidden;
-  padding-bottom: 0px;
+.sorterSelect {
+  width: 100px;
+  border: none;
+  background-color: transparent;
+  font-weight: bold;
+  cursor: pointer;
   text-align: center;
-  transition: transform 50ms linear;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-  background-color: var(--primary);
-  transform-origin: top;
-  transform: scaleY(0);
-}
-.sorterMenu.open {
-  transform: scaleY(1);
+  appearance: none;
 }
 
-.sorterMenu * {
-  opacity: 0%;
-}
-
-.sorterMenu.open * {
-  opacity: 100%;
-  transition: opacity 20ms 30ms linear;
-}
-
-.sorterMenuItem {
-  flex: 1;
-  margin-top: 5px;
-  cursor: pointer;
-  color: var(--button);
-  user-select: none;
-}
-.sorterMenuItem:hover,
-.sorterMenuItem:focus-visible {
-  color: var(--button-hover);
-}
-.sorterMenuItem:active {
-  color: var(--button-active);
-}
-
-.sorterMenuItem:last-child {
-  margin-bottom: 5px;
+.sorterReverser {
+  width: 24px;
+  height: 21px;
+  padding-top: 3px;
 }

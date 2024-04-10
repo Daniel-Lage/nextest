@@ -53,7 +53,7 @@ export default function Playlist() {
   const [showSummary, setShowSummary] = useState();
   const [theme, setTheme] = useState();
   const [skip, setSkip] = useState(true);
-  const [cap, setCap] = useState({ type: "duration", duration_ms: 360000 });
+  const [limit, setLimit] = useState({ type: "Duration", value: 360000 });
 
   const [message, setMessage] = useState("");
 
@@ -188,11 +188,11 @@ export default function Playlist() {
   }, [reversed]);
 
   function playDefault(e) {
-    play(e, setMessage, tracks, skip, cap);
+    play(e, setMessage, tracks, skip, limit);
   }
 
   function playFrom(e, firstTrack) {
-    play(e, setMessage, tracks, skip, cap, firstTrack);
+    play(e, setMessage, tracks, skip, limit, firstTrack);
   }
 
   function goHome() {
@@ -316,6 +316,8 @@ export default function Playlist() {
               showSummary,
               clearFilter,
               share,
+              limit,
+              setLimit,
             }}
           />
           {sortedTracks.map((track, index) => (

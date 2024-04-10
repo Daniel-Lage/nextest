@@ -4,6 +4,7 @@ import Filter from "./filter";
 import Sorter from "./sorter";
 import ButtonSvg from "./buttonSvg";
 import { sortKeys } from "@/constants/trackSortKeys";
+import Limiter from "./limiter";
 
 export default function PlaylistDetails({
   playlist,
@@ -19,6 +20,8 @@ export default function PlaylistDetails({
   switchLiked,
   clearFilter,
   share,
+  limit,
+  setLimit,
 }) {
   return (
     playlist && (
@@ -56,6 +59,13 @@ export default function PlaylistDetails({
               reversed,
               sortKeys,
               setSortKey,
+            }}
+          />
+
+          <Limiter
+            {...{
+              limit,
+              setLimit,
             }}
           />
           <div className="row">
