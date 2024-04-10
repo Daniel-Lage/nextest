@@ -29,5 +29,16 @@ function LimitValueInput({ limit, setLimit }) {
           }}
         />
       );
+    case "Tracks":
+      return (
+        <input
+          type="number"
+          min="0"
+          value={limit.value}
+          onChange={(e) => {
+            setLimit({ type: limit.type, value: e.target.value });
+          }}
+        />
+      );
   }
 }
