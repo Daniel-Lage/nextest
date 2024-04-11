@@ -42,45 +42,38 @@ export default async function play(
     shuffledTracks.push(firstTrack);
   }
 
-  // adds first track to queue
-  const track = shuffledTracks.pop();
-
-  // code that is dumb :) fix later pls
-
   var progress = 0;
 
-  switch (limit.type) {
-    case "None": {
-      break;
-    }
-    case "Duration": {
-      progress += track.track.duration_ms;
-      break;
-    }
-    case "Tracks": {
-      progress += 1;
-      break;
-    }
-  }
+  if (skip) {
+    const track = shuffledTracks.pop();
 
-  if (progress > limit.value) return;
-
-  await fetch(
-    "https://api.spotify.com/v1/me/player/queue?" +
-      new URLSearchParams({
-        uri: track.track.uri,
-        device_id: deviceId,
-      }).toString(),
-    {
-      method: "POST",
-      headers: {
-        Authorization: "Bearer " + accessToken,
-      },
+    switch (limit.type) {
+      case "Duration": {
+        progress += track.track.duration_ms;
+        break;
+      }
+      case "Tracks": {
+        progress += 1;
+        break;
+      }
     }
-  );
 
-  // skips currently playing song (to play the track that was added to queue)
-  if (skip)
+    if (progress > limit.value) return;
+
+    await fetch(
+      "https://api.spotify.com/v1/me/player/queue?" +
+        new URLSearchParams({
+          uri: track.track.uri,
+          device_id: deviceId,
+        }).toString(),
+      {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer " + accessToken,
+        },
+      }
+    );
+
     await fetch(
       "https://api.spotify.com/v1/me/player/next?" +
         new URLSearchParams({
@@ -93,6 +86,7 @@ export default async function play(
         },
       }
     );
+  }
 
   for (const track of shuffledTracks) {
     switch (limit.type) {
@@ -108,7 +102,7 @@ export default async function play(
 
     if (progress > limit.value) return;
 
-    await fetch(
+    fetch(
       "https://api.spotify.com/v1/me/player/queue?" +
         new URLSearchParams({
           uri: track.track.uri,
