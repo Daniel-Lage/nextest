@@ -1,7 +1,6 @@
 import Select from "./select";
 
 export default function Limiter({ limit, setLimit }) {
-  console.log(limit);
   return (
     <div tabIndex="0" className="limiter">
       <Select
