@@ -3,6 +3,7 @@ import Sorter from "./sorter";
 import Filter from "./filter";
 import ButtonSvg from "./buttonSvg";
 import { sortKeys } from "@/constants/trackSortKeys";
+import Limiter from "./limiter";
 
 export default function playlistSummary({
   playlist,
@@ -17,6 +18,10 @@ export default function playlistSummary({
   switchLiked,
   clearFilter,
   share,
+  limit,
+  setLimit,
+  skip,
+  switchSkip,
 }) {
   return (
     playlist && (
@@ -32,6 +37,16 @@ export default function playlistSummary({
             setSortKey,
           }}
         />
+
+        <Limiter
+          {...{
+            limit,
+            setLimit,
+          }}
+        />
+        <div className="switch" style={{ color: "black" }} onClick={switchSkip}>
+          {skip ? "Play" : "Add to Queue"}
+        </div>
         <Filter
           tabIndex={5 + Object.keys(sortKeys).length}
           {...{
@@ -40,6 +55,7 @@ export default function playlistSummary({
             clearFilter,
           }}
         />
+
         <div className="row">
           <div
             tabIndex={`${6 + Object.keys(sortKeys).length}`}

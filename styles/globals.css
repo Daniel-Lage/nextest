@@ -314,11 +314,12 @@ a {
   display: flex;
   background-color: var(--button);
   border-radius: 12px;
+  height: 24px;
   align-items: center;
   justify-content: center;
 }
 
-.sorterSelect {
+.select {
   width: 100px;
   border: none;
   background-color: transparent;
@@ -326,10 +327,51 @@ a {
   cursor: pointer;
   text-align: center;
   appearance: none;
+  font-family: inherit;
 }
 
 .sorterReverser {
   width: 24px;
   height: 21px;
   padding-top: 3px;
+}
+
+.switch {
+  padding: 5px;
+  background-color: var(--button);
+  border-radius: 10px;
+  cursor: pointer;
+}
+.switch:hover {
+  background-color: var(--button-hover);
+}
+.switch:active {
+  background-color: var(--button-active);
+}
+
+input[type="number"] {
+  width: 15px;
+  background-color: var(--secondary);
+  color: white;
+  border: none;
+  outline: none;
+  appearance: textfield;
+  border-radius: 3px;
+  margin-right: 1px;
+}
+
+input[type="number"]:focus {
+  outline: 1px solid white;
+}
+
+.limiter {
+  display: flex;
+  background-color: var(--button);
+  border-radius: 12px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  color: black;
+  font-weight: bold;
+  padding-right: 5px;
 }

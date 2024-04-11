@@ -53,7 +53,7 @@ export default function Playlist() {
   const [showSummary, setShowSummary] = useState();
   const [theme, setTheme] = useState();
   const [skip, setSkip] = useState(true);
-  const [limit, setLimit] = useState({ type: "Duration", value: 360000 });
+  const [limit, setLimit] = useState({ type: "No Limit", value: 0 });
 
   const [message, setMessage] = useState("");
 
@@ -203,6 +203,10 @@ export default function Playlist() {
     setReversed((prev) => !prev);
   }
 
+  function switchSkip() {
+    setSkip((prev) => !prev);
+  }
+
   function open() {
     router.push("/user/" + playlist.owner.id);
   }
@@ -280,6 +284,10 @@ export default function Playlist() {
                 switchLiked,
                 clearFilter,
                 share,
+                limit,
+                setLimit,
+                skip,
+                switchSkip,
               }}
             />
           )}
@@ -318,6 +326,8 @@ export default function Playlist() {
               share,
               limit,
               setLimit,
+              skip,
+              switchSkip,
             }}
           />
           {sortedTracks.map((track, index) => (

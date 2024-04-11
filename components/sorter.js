@@ -26,7 +26,6 @@ export default function Sorter({
             reverse();
           }
         }}
-        onFocus={() => setOpen(false)}
         className="sorterReverser"
       >
         <ButtonSvg name={reversed ? "down" : "up"} size={19} />

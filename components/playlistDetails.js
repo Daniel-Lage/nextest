@@ -22,6 +22,8 @@ export default function PlaylistDetails({
   share,
   limit,
   setLimit,
+  skip,
+  switchSkip,
 }) {
   return (
     playlist && (
@@ -68,6 +70,15 @@ export default function PlaylistDetails({
               setLimit,
             }}
           />
+
+          <div
+            className="switch"
+            style={{ color: "black" }}
+            onClick={switchSkip}
+          >
+            {skip ? "Play" : "Add to Queue"}
+          </div>
+
           <div className="row">
             <Filter
               tabIndex={5 + Object.keys(sortKeys).length}
