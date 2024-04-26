@@ -188,11 +188,11 @@ export default function Playlist() {
   }, [reversed]);
 
   function playDefault(e) {
-    play(e, setMessage, tracks, skip, limit);
+    play(e, setMessage, skip, tracks, limit);
   }
 
   function playFrom(e, firstTrack) {
-    play(e, setMessage, tracks, skip, limit, firstTrack);
+    play(e, setMessage, skip, tracks, limit, firstTrack);
   }
 
   function goHome() {

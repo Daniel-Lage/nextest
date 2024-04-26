@@ -1,5 +1,6 @@
-import ButtonSvg from "./buttonSvg";
 import Select from "./select";
+import Button from "./button";
+import SVG from "./svg";
 
 export default function Sorter({
   tabIndex,
@@ -18,18 +19,9 @@ export default function Sorter({
         value={sortKey}
         options={Object.keys(sortKeys)}
       />
-      <div
-        tabIndex={`${tabIndex + Object.keys(sortKeys).length}`}
-        onClick={reverse}
-        onKeyUp={(e) => {
-          if (e.code === "Enter") {
-            reverse();
-          }
-        }}
-        className="sorterReverser"
-      >
-        <ButtonSvg name={reversed ? "down" : "up"} size={19} />
-      </div>
+      <Button className="button smallCircle" action={reverse}>
+        <SVG name={reversed ? "down" : "up"} size={19} />
+      </Button>
     </div>
   );
 }

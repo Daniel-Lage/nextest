@@ -1,13 +1,9 @@
-import ButtonSvg from "./buttonSvg";
+import Button from "./button";
+import SVG from "./svg";
 
 export default function Filter({ filter, setFilter, clearFilter, tabIndex }) {
   return (
-    <div
-      className="filter"
-      onClick={(e) => {
-        e.target.firstChild.focus();
-      }}
-    >
+    <div className="filter">
       <input
         tabIndex={`${tabIndex}`}
         className="textInput"
@@ -21,21 +17,9 @@ export default function Filter({ filter, setFilter, clearFilter, tabIndex }) {
         onKeyUp={(e) => e.key === "Escape" && setFilter("")}
       />
       {filter && (
-        <div
-          tabIndex={`${tabIndex + 1}`}
-          className="filterButton"
-          onClick={(e) => {
-            e.stopPropagation();
-            clearFilter();
-          }}
-          onKeyUp={(e) => {
-            if (e.code === "Enter") {
-              clearFilter();
-            }
-          }}
-        >
-          <ButtonSvg name="close" color="white" size={20} />
-        </div>
+        <Button className="smallCircle clearButton" action={clearFilter}>
+          <SVG name="close" size={20} />
+        </Button>
       )}
     </div>
   );

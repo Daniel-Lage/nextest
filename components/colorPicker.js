@@ -1,11 +1,11 @@
-import { useEffect, useRef, useState } from "react";
-import ButtonSvg from "./buttonSvg";
+import { useEffect, useState } from "react";
+import Button from "./button";
+import SVG from "./svg";
 
 const themes = ["blue", "pink", "lime", "mono"];
 
 export default function ColorPicker({ theme, setTheme, headerHidden }) {
   const [open, setOpen] = useState();
-  const filter = useRef();
 
   useEffect(() => {
     if (themes.some((t) => t === localStorage.theme)) {
@@ -25,19 +25,9 @@ export default function ColorPicker({ theme, setTheme, headerHidden }) {
       tabIndex="0"
       onBlur={(e) => setOpen(e.currentTarget.contains(e.relatedTarget))}
     >
-      <div
-        tabIndex="2"
-        className="headerButton"
-        ref={filter}
-        onClick={OpenClose}
-        onKeyUp={(e) => {
-          if (e.code === "Enter") {
-            OpenClose();
-          }
-        }}
-      >
-        <ButtonSvg name="ellipsis" size={20} />
-      </div>
+      <Button className="button largeCircle" action={OpenClose}>
+        <SVG name="ellipsis" size={20} />
+      </Button>
       <div
         className={
           "colorPicker" + (headerHidden ? " hidden" : open ? " open" : "")
@@ -46,20 +36,11 @@ export default function ColorPicker({ theme, setTheme, headerHidden }) {
         {themes
           .filter((t) => t !== theme)
           .map((theme, index) => (
-            <div
-              tabIndex={open && !headerHidden ? `${3 + index}` : null}
-              className={"circle " + theme}
-              key={theme}
-              onClick={() => {
-                filter.current.focus();
-                setTheme(theme);
-              }}
-              onKeyUp={(e) => {
-                if (e.code === "Enter") {
-                  setTheme(theme);
-                }
-              }}
-            ></div>
+            <Button
+              key={index}
+              className={`button largeCircle ${theme}`}
+              action={() => setTheme(theme)}
+            />
           ))}
       </div>
     </div>

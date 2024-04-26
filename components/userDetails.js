@@ -1,9 +1,9 @@
 import styles from "@/styles/User.module.css";
 import Sorter from "./sorter";
 import Filter from "./filter";
-import ButtonSvg from "./buttonSvg";
 import { sortKeys } from "@/constants/playlistSortKeys";
-import Limiter from "./limiter";
+import Button from "./button";
+import SVG from "./svg";
 
 export default function UserDetails({
   self,
@@ -69,34 +69,18 @@ export default function UserDetails({
                 clearFilter,
               }}
             />
-            <div
-              tabIndex={`${9 + Object.keys(sortKeys).length}`}
-              className="subheaderButton"
-              onClick={share}
-              onKeyUp={(e) => {
-                if (e.code === "Enter") {
-                  share(e);
-                }
-              }}
-            >
-              <ButtonSvg name="share" size={15} />
-            </div>
+
+            <Button className="button smallCircle" action={share}>
+              <SVG name="share" size={15} />
+            </Button>
+
             {self || (
-              <div
-                tabIndex={`${8 + Object.keys(sortKeys).length}`}
-                className="headerButton"
-                onClick={switchFollowing}
-                onKeyUp={(e) => {
-                  if (e.code === "Enter") {
-                    switchFollowing();
-                  }
-                }}
-              >
-                <ButtonSvg
+              <Button className="button smallCircle" action={switchFollowing}>
+                <SVG
                   name={following ? "heart-filled" : "heart-outline"}
-                  size={20}
+                  size={15}
                 />
-              </div>
+              </Button>
             )}
           </div>
         </div>

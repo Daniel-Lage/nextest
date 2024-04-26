@@ -42,7 +42,8 @@
   align-items: baseline;
   gap: 10px;
 }
-.details .title {
+
+.title {
   font-size: 20px;
   font-weight: 700;
 }

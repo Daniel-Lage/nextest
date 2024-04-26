@@ -1,6 +1,7 @@
 import Image from "next/image";
-import ButtonSvg from "./buttonSvg";
 import ColorPicker from "./colorPicker";
+import Button from "./button";
+import SVG from "./svg";
 
 export default function Header({
   start,
@@ -14,18 +15,9 @@ export default function Header({
     <div className={"header" + (headerHidden ? " hidden" : "")}>
       {start || (
         <div className="left">
-          <div
-            tabIndex="1"
-            className="headerButton"
-            onClick={exit}
-            onKeyUp={(e) => {
-              if (e.code === "Enter") {
-                exit();
-              }
-            }}
-          >
-            <ButtonSvg name={home ? "logout" : "home"} size={20} />
-          </div>
+          <Button className={"button largeCircle"} action={exit}>
+            <SVG name={home ? "logout" : "home"} size={20} />
+          </Button>
         </div>
       )}
 

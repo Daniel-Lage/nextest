@@ -1,22 +1,14 @@
-import ButtonSvg from "./buttonSvg";
+import Button from "./button";
+import SVG from "./svg";
 
 export default function Modal({ theme, message, clearMessage }) {
   return (
     <div className={"modal " + (theme || "loading")}>
       <div className="message">
         {message}
-        <div
-          tabIndex="0"
-          className="headerButton"
-          onClick={clearMessage}
-          onKeyUp={(e) => {
-            if (e.code === "Enter") {
-              clearMessage();
-            }
-          }}
-        >
-          <ButtonSvg name="close" size={20} />
-        </div>
+        <Button className="button largeCircle" action={clearMessage}>
+          <SVG name="close" size={20} />
+        </Button>
       </div>
     </div>
   );

@@ -1,12 +1,13 @@
 import getAccessToken from "./getAccessToken";
+import loadTracks from "./loadTracks";
 import shuffleArray from "./shuffleArray";
 
 export default async function play(
   e,
   setMessage,
-  tracks,
   skip,
-  limit = null,
+  playlist,
+  limit = { type: "No Limit", value: 0 },
   firstTrack = null
 ) {
   e.stopPropagation();
@@ -19,16 +20,40 @@ export default async function play(
     },
   });
 
-  if (playerResponse.status !== 200) return;
-
-  const playerBody = await playerResponse.json();
-
-  if (playerBody === undefined) {
+  if (playerResponse.status !== 200) {
+    setMessage("Não encontrou dispositivo spotify ativo");
     e.target.blur();
-    return setMessage("Não encontrou dispositivo spotify ativo");
+    return;
   }
 
-  const shuffledTracks = shuffleArray([...tracks]);
+  var shuffledTracks;
+
+  switch (typeof playlist) {
+    case "object": {
+      console.log("de dentro");
+      shuffledTracks = shuffleArray([...playlist]);
+      break;
+    }
+    case "string": {
+      const tracksResponse = await fetch(
+        `https://api.spotify.com/v1/playlists/${playlist}/tracks`,
+        {
+          headers: {
+            Authorization: "Bearer " + accessToken,
+          },
+        }
+      );
+      const tracksBody = await tracksResponse.json();
+
+      shuffledTracks = shuffleArray([...(await loadTracks(tracksBody, []))]);
+      break;
+    }
+    default: {
+      return;
+    }
+  }
+
+  const playerBody = await playerResponse.json();
 
   const deviceId = playerBody.device.id;
 
