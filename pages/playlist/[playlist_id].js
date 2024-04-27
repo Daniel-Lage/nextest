@@ -319,7 +319,9 @@ export async function getServerSideProps({
       display_name: playlistsBody.owner.display_name,
       id: playlistsBody.owner.id,
     },
-    images: [{ url: playlistsBody.images[0]?.url }],
+    images: [
+      { url: playlistsBody.images[0] ? playlistsBody.images[0].url : null },
+    ],
   };
 
   const result = await loadTracks(playlistsBody.tracks, access_token);
@@ -329,7 +331,7 @@ export async function getServerSideProps({
       added_at,
       track: {
         album: {
-          images: [{ url: album.images[0]?.url }],
+          images: [{ url: album.images[0] ? album.images[0].url : null }],
           name: album.name,
         },
         artists: artists.map(({ name }) => ({

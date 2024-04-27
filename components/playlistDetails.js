@@ -6,6 +6,7 @@ import { sortKeys } from "@/constants/trackSortKeys";
 import Limiter from "./limiter";
 import Button from "./button";
 import SVG from "./svg";
+import Switch from "./switch";
 
 export default function PlaylistDetails({
   playlist,
@@ -70,13 +71,7 @@ export default function PlaylistDetails({
             }}
           />
 
-          <div
-            className="switch"
-            style={{ color: "black" }}
-            onClick={switchSkip}
-          >
-            {skip ? "Play" : "Add to Queue"}
-          </div>
+          <Switch onClick={switchSkip} state={skip} symbols={["play", "add"]} />
 
           <div className="row">
             <Filter

@@ -24,11 +24,7 @@ export default function Track({
       }}
     >
       {album.images && (
-        <img
-          src={album.images[0].url}
-          alt={name + " image"}
-          className={styles.image}
-        />
+        <img src={album.images[0].url} alt={name} className={styles.image} />
       )}
       <div className={styles.details}>
         <div className={styles.name}>{name}</div>
