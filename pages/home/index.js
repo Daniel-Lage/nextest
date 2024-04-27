@@ -19,6 +19,8 @@ import loadPlaylists from "@/functions/loadPlaylists";
 var prevScrollTop = 0;
 
 export default function Home() {
+  console.log(process.env);
+
   const [user, setUser] = useState();
   const [total, setTotal] = useState();
   const [playlists, setPlaylists] = useState([]);
