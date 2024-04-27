@@ -1,4 +1,3 @@
-import getAccessToken from "../server/getAccessToken";
 import loadTracks from "../server/loadTracks";
 import parseCookies from "./parseCookies";
 import shuffleArray from "./shuffleArray";
@@ -36,7 +35,6 @@ export default async function play(
 
   switch (typeof playlist) {
     case "object": {
-      console.log("de dentro");
       shuffledTracks = shuffleArray([...playlist]);
       break;
     }
@@ -45,7 +43,7 @@ export default async function play(
         `https://api.spotify.com/v1/playlists/${playlist}/tracks`,
         {
           headers: {
-            Authorization: "Bearer " + accessToken,
+            Authorization: "Bearer " + access_token,
           },
         }
       );
@@ -100,7 +98,7 @@ export default async function play(
       {
         method: "POST",
         headers: {
-          Authorization: "Bearer " + accessToken,
+          Authorization: "Bearer " + access_token,
         },
       }
     );
@@ -113,7 +111,7 @@ export default async function play(
       {
         method: "POST",
         headers: {
-          Authorization: "Bearer " + accessToken,
+          Authorization: "Bearer " + access_token,
         },
       }
     );
@@ -142,7 +140,7 @@ export default async function play(
       {
         method: "POST",
         headers: {
-          Authorization: "Bearer " + accessToken,
+          Authorization: "Bearer " + access_token,
         },
       }
     );
