@@ -61,11 +61,11 @@ export default function Start() {
         <div className="body">
           <a
             tabIndex="1"
-            className="button"
+            className="button loginButton"
             href={"https://accounts.spotify.com/authorize?" + params}
           >
             <Image src="/login.svg" alt="login" width={40} height={40} />
-            <div style={{ color: "black" }}>Enter with Spotify</div>
+            Enter with Spotify
           </a>
         </div>
       </div>

@@ -357,3 +357,11 @@ input[type="number"]:focus {
 .clearButton > img {
   z-index: 1;
 }
+
+.loginButton {
+  color: black;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 5px;
+  font-weight: bold;
+}
