@@ -5,7 +5,7 @@ import Head from "next/head";
 
 import styles from "@/styles/User.module.css";
 
-import getAccessToken from "@/functions/getAccessToken";
+import getAccessToken from "@/functions/server/getAccessToken";
 
 import PlaylistThumbnail from "@/components/PlaylistThumbnail";
 import Header from "@/components/header";
@@ -14,14 +14,11 @@ import UserDetails from "@/components/userDetails";
 import UserSummary from "@/components/userSummary";
 import { localStorageKeys } from "@/constants/localStorageKeys";
 import { sortKeys } from "@/constants/playlistSortKeys";
-import loadPlaylists from "@/functions/loadPlaylists";
+import loadPlaylists from "@/functions/server/loadPlaylists";
 
 var prevScrollTop = 0;
 
-export default function User() {
-  const [user, setUser] = useState();
-  const [total, setTotal] = useState();
-  const [playlists, setPlaylists] = useState([]);
+export default function User({ user, playlists, total, error }) {
   const [following, setFollowing] = useState();
 
   const [filter, setFilter] = useState("");
@@ -30,21 +27,25 @@ export default function User() {
 
   const filteredPlaylists = useMemo(
     () =>
-      playlists.filter(
-        (playlist) =>
-          playlist.name.toLowerCase().includes(filter.toLowerCase()) ||
-          playlist.owner.display_name
-            .toLowerCase()
-            .includes(filter.toLowerCase())
-      ),
+      playlists === undefined
+        ? []
+        : playlists.filter(
+            (playlist) =>
+              playlist.name.toLowerCase().includes(filter.toLowerCase()) ||
+              playlist.owner.display_name
+                .toLowerCase()
+                .includes(filter.toLowerCase())
+          ),
     [playlists, filter]
   );
 
   const sortedPlaylists = useMemo(
     () =>
-      [...filteredPlaylists].sort((a, b) =>
-        reversed ? sortKeys[sortKey](b, a) : sortKeys[sortKey](a, b)
-      ),
+      sortKey === undefined
+        ? []
+        : [...filteredPlaylists].sort((a, b) =>
+            reversed ? sortKeys[sortKey](b, a) : sortKeys[sortKey](a, b)
+          ),
     [filteredPlaylists, sortKey, reversed]
   );
 
@@ -57,12 +58,16 @@ export default function User() {
   const router = useRouter();
 
   useEffect(() => {
-    if (localStorageKeys.some((value) => localStorage[value] === undefined)) {
-      const theme = localStorage.theme;
-      localStorage.clear();
-      localStorage.theme = theme;
-      router.replace("/");
+    if (
+      localStorageKeys.some((value) => localStorage[value] === undefined) ||
+      error === "missing_refresh_token"
+    ) {
+      logout(router);
     } else {
+      if (error === "own_profile") {
+        router.replace("/home");
+      }
+
       if (sortKeys[localStorage.sortPlaylistsKey]) {
         setSortKey(localStorage.sortPlaylistsKey);
       } else {
@@ -71,88 +76,11 @@ export default function User() {
 
       setReversed(JSON.parse(localStorage.reversedPlaylists));
 
-      const { userId } = router.query;
+      const { user_id } = router.query;
 
       const following = JSON.parse(localStorage.following);
 
-      setFollowing(Boolean(following[userId]));
-
-      async function fetchData() {
-        const accessToken = await getAccessToken();
-
-        const meResponse = await fetch(
-          `https://api.spotify.com/v1/users/${userId}`,
-          {
-            headers: {
-              Authorization: "Bearer " + accessToken,
-            },
-          }
-        );
-
-        const meBody = await meResponse.json();
-
-        const user = {
-          id: meBody.id,
-          display_name: meBody.display_name,
-          images: [{ url: meBody.images[0]?.url }],
-          followers: { total: meBody.followers.total },
-        };
-
-        setUser(user);
-        localStorage.user = JSON.stringify(user);
-
-        const playlistsResponse = await fetch(
-          `https://api.spotify.com/v1/users/${userId}/playlists?limit=50`,
-          {
-            headers: {
-              Authorization: "Bearer " + accessToken,
-            },
-          }
-        );
-
-        const playlistsBody = await playlistsResponse.json();
-
-        if (playlistsBody.error) {
-          console.error(playlistsBody.error.message);
-        } else {
-          setTotal(playlistsBody.total);
-          loadPlaylists(playlistsBody, []).then((playlists) => {
-            playlists = playlists.map(
-              ({
-                name,
-                description,
-                id,
-                tracks: { total },
-                owner: { display_name },
-                images,
-              }) => ({
-                name,
-                description,
-                id,
-                tracks: { total },
-                owner: { display_name },
-                images: [{ url: images[0]?.url }],
-              })
-            );
-            setPlaylists([
-              ...playlists,
-              ...Object.values(JSON.parse(localStorage.liked)),
-            ]);
-
-            const saved = {};
-            playlists.forEach((playlist) => {
-              saved[playlist.id] = playlist;
-            });
-            localStorage.saved = JSON.stringify(saved);
-          });
-        }
-      }
-
-      if (userId !== undefined) {
-        if (userId === JSON.parse(localStorage.user).id)
-          router.replace("/home");
-        else fetchData();
-      }
+      setFollowing(Boolean(following[user_id]));
     }
   }, [router]);
 
@@ -189,12 +117,12 @@ export default function User() {
 
   function switchFollowing() {
     setFollowing((prev) => {
-      const { userId } = router.query;
+      const { user_id } = router.query;
 
       const following = JSON.parse(localStorage.following);
 
-      if (prev) delete following[userId];
-      else following[userId] = user;
+      if (prev) delete following[user_id];
+      else following[user_id] = user;
 
       localStorage.following = JSON.stringify(following);
       return !prev;
@@ -278,4 +206,120 @@ export default function User() {
       </div>
     </>
   );
+}
+
+export async function getServerSideProps({
+  params: { user_id },
+  req: {
+    cookies: { access_token, refresh_token, me_id },
+  },
+  res: { setHeader },
+}) {
+  if (user_id === me_id) {
+    return {
+      props: {
+        error: "own_profile",
+      },
+    };
+  }
+
+  if (refresh_token === undefined) {
+    return {
+      props: {
+        error: "missing_refresh_token",
+      },
+    };
+  }
+
+  if (access_token === undefined) {
+    access_token = await getAccessToken(refresh_token);
+
+    const now = new Date();
+    const time = now.getTime();
+
+    const accessTokenExpirationDate = new Date(time + 3600000); // expires in an hour
+    const refreshTokenExpirationDate = new Date(time + 34560000000); // expires in 400 days
+
+    setHeader("Set-Cookie", ["access_token=deleted", "refresh_token=deleted"]);
+
+    setHeader("Set-Cookie", [
+      `access_token=${access_token};expires=${accessTokenExpirationDate.toUTCString()}`,
+      `refresh_token=${refresh_token};expires=${refreshTokenExpirationDate.toUTCString()}`,
+    ]);
+  }
+
+  if (user_id === undefined) {
+    return {
+      props: {
+        error: "playlist_not_found",
+      },
+    };
+  }
+
+  const userResponse = await fetch(
+    `https://api.spotify.com/v1/users/${user_id}`,
+    {
+      headers: {
+        Authorization: "Bearer " + access_token,
+      },
+    }
+  );
+
+  const userBody = await userResponse.json();
+
+  const user = {
+    id: userBody.id,
+    display_name: userBody.display_name,
+    images: [{ url: userBody.images[0]?.url }],
+    followers: { total: userBody.followers.total },
+  };
+
+  const playlistsResponse = await fetch(
+    `https://api.spotify.com/v1/users/${user_id}/playlists?limit=50`,
+    {
+      headers: {
+        Authorization: "Bearer " + access_token,
+      },
+    }
+  );
+
+  const playlistsBody = await playlistsResponse.json();
+
+  const saved = {};
+
+  if (playlistsBody.error) {
+    return { props: { error: playlistsBody.error_description } };
+  } else {
+    const result = await loadPlaylists(playlistsBody, [], access_token);
+
+    const playlists = result.map(
+      ({
+        name,
+        description,
+        id,
+        tracks: { total },
+        owner: { display_name },
+        images,
+      }) => ({
+        name,
+        description,
+        id,
+        tracks: { total },
+        owner: { display_name },
+        images: [{ url: images[0]?.url }],
+      })
+    );
+
+    playlists.forEach((playlist) => {
+      saved[playlist.id] = playlist;
+    });
+  }
+
+  return {
+    props: {
+      user,
+      playlists: Object.values(saved),
+      total: playlistsBody.total,
+    },
+  };
 }

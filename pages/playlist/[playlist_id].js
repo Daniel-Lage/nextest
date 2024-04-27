@@ -4,8 +4,8 @@ import styles from "@/styles/Playlist.module.css";
 import { useRouter } from "next/router";
 import Head from "next/head";
 
-import getAccessToken from "@/functions/getAccessToken";
-import shuffleArray from "@/functions/shuffleArray";
+import getAccessToken from "@/functions/server/getAccessToken";
+import shuffleArray from "@/functions/client/shuffleArray";
 import Header from "@/components/header";
 import Track from "@/components/track";
 import Modal from "@/components/modal";
@@ -13,38 +13,40 @@ import PlaylistDetails from "@/components/playlistDetails";
 import PlaylistSummary from "@/components/playlistSummary";
 import { localStorageKeys } from "@/constants/localStorageKeys";
 import { sortKeys } from "@/constants/trackSortKeys";
-import loadTracks from "@/functions/loadTracks";
-import play from "@/functions/play";
+import loadTracks from "@/functions/server/loadTracks";
+import play from "@/functions/client/play";
 
 var prevScrollTop = 0;
 
-export default function Playlist() {
-  const [playlist, setPlaylist] = useState();
-  const [tracks, setTracks] = useState([]);
-  const [status, setStatus] = useState(null); // "saved", "liked", or null
-
+export default function Playlist({ playlist, tracks, error }) {
   const [filter, setFilter] = useState("");
   const [sortKey, setSortKey] = useState();
   const [reversed, setReversed] = useState();
 
   const filteredTracks = useMemo(
     () =>
-      tracks.filter(
-        (value) =>
-          value.track.name.toLowerCase().includes(filter.toLowerCase()) ||
-          value.track.album.name.toLowerCase().includes(filter.toLowerCase()) ||
-          value.track.artists.some((value) =>
-            value.name.toLowerCase().includes(filter.toLowerCase())
-          )
-      ),
+      tracks === undefined
+        ? []
+        : tracks.filter(
+            (value) =>
+              value.track.name.toLowerCase().includes(filter.toLowerCase()) ||
+              value.track.album.name
+                .toLowerCase()
+                .includes(filter.toLowerCase()) ||
+              value.track.artists.some((value) =>
+                value.name.toLowerCase().includes(filter.toLowerCase())
+              )
+          ),
     [tracks, filter]
   );
 
   const sortedTracks = useMemo(
     () =>
-      [...filteredTracks].sort((a, b) =>
-        reversed ? sortKeys[sortKey](b, a) : sortKeys[sortKey](a, b)
-      ),
+      sortKey === undefined
+        ? []
+        : [...filteredTracks].sort((a, b) =>
+            reversed ? sortKeys[sortKey](b, a) : sortKeys[sortKey](a, b)
+          ),
     [filteredTracks, sortKey, reversed]
   );
 
@@ -60,7 +62,10 @@ export default function Playlist() {
   const router = useRouter();
 
   useEffect(() => {
-    if (localStorageKeys.some((value) => localStorage[value] === undefined)) {
+    if (
+      localStorageKeys.some((value) => localStorage[value] === undefined) ||
+      error === "missing_refresh_token"
+    ) {
       const theme = localStorage.theme;
       localStorage.clear();
       localStorage.theme = theme;
@@ -72,105 +77,12 @@ export default function Playlist() {
         setVertical(innerHeight > innerWidth);
       };
 
-      const { playlistId } = router.query;
-
-      const storage = {
-        saved: JSON.parse(localStorage.saved),
-        liked: JSON.parse(localStorage.liked),
-      };
-      const loaded = JSON.parse(localStorage.loaded);
-
-      const nextStatus = storage.saved[playlistId]
-        ? "saved"
-        : storage.liked[playlistId]
-        ? "liked"
-        : null;
-
-      if (nextStatus) {
-        if (storage[nextStatus][playlistId])
-          setPlaylist(storage[nextStatus][playlistId]);
-        if (loaded[playlistId]) setTracks(loaded[playlistId]);
-        setStatus(nextStatus);
-      }
-
       if (sortKeys[localStorage.sortTracksKey]) {
         setSortKey(localStorage.sortTracksKey);
       } else {
         setSortKey("Data");
       }
       setReversed(JSON.parse(localStorage.reversedTracks));
-
-      async function fetchData() {
-        const accessToken = await getAccessToken();
-
-        const playlistsResponse = await fetch(
-          "https://api.spotify.com/v1/playlists/" + playlistId,
-          {
-            headers: {
-              Authorization: "Bearer " + accessToken,
-            },
-          }
-        );
-
-        const playlistsBody = await playlistsResponse.json();
-
-        if (playlistsBody.error) {
-          setMessage("Playlist não encontrada");
-          return;
-        }
-
-        const playlist = {
-          name: playlistsBody.name,
-          description: playlistsBody.description,
-          id: playlistsBody.id,
-          tracks: { total: playlistsBody.tracks.total },
-          owner: {
-            display_name: playlistsBody.owner.display_name,
-            id: playlistsBody.owner.id,
-          },
-          images: [{ url: playlistsBody.images[0]?.url }],
-        };
-
-        setPlaylist(playlist);
-
-        if (nextStatus) {
-          storage[nextStatus][playlistId] = playlist;
-          localStorage[nextStatus] = JSON.stringify(storage[nextStatus]);
-        }
-        const tracks = await loadTracks(playlistsBody.tracks);
-
-        const treatedTracks = tracks.map(
-          ({
-            added_at,
-            track: { album, artists, name, uri, duration_ms },
-          }) => ({
-            added_at,
-            track: {
-              album: {
-                images: [{ url: album.images[0]?.url }],
-                name: album.name,
-              },
-              artists: artists.map(({ name }) => ({
-                name,
-              })),
-              name,
-              uri,
-              duration_ms,
-            },
-          })
-        );
-
-        setTracks(treatedTracks);
-
-        if (nextStatus) {
-          loaded[playlistId] = treatedTracks;
-          localStorage.loaded = JSON.stringify(loaded);
-        }
-      }
-
-      if (playlistId !== undefined) {
-        fetchData();
-      }
     }
   }, [router]);
 
@@ -188,11 +100,31 @@ export default function Playlist() {
   }, [reversed]);
 
   function playDefault(e) {
-    play(e, setMessage, skip, tracks, limit);
+    const result = play(e, skip, tracks, limit);
+
+    switch (result.error) {
+      case "missing_token": {
+        logout(router);
+      }
+      case "device_not_found": {
+        setMessage("Não encontrou dispositivo spotify ativo");
+        e.target.blur();
+      }
+    }
   }
 
   function playFrom(e, firstTrack) {
-    play(e, setMessage, skip, tracks, limit, firstTrack);
+    const result = play(e, skip, tracks, limit, firstTrack);
+
+    switch (result.error) {
+      case "missing_refresh_token": {
+        logout(router);
+      }
+      case "device_not_found": {
+        setMessage("Não encontrou dispositivo spotify ativo");
+        e.target.blur();
+      }
+    }
   }
 
   function goHome() {
@@ -219,28 +151,6 @@ export default function Playlist() {
     navigator.clipboard.writeText(location);
     e.target.blur();
     setMessage("Adicionado a área de transferência");
-  }
-
-  function switchLiked() {
-    setStatus((prev) => {
-      const { playlistId } = router.query;
-
-      const liked = JSON.parse(localStorage.liked);
-      const loaded = JSON.parse(localStorage.loaded);
-
-      if (!prev) {
-        liked[playlistId] = playlist;
-        loaded[playlistId] = tracks;
-        localStorage.liked = JSON.stringify(liked);
-        localStorage.loaded = JSON.stringify(loaded);
-        return "liked";
-      }
-
-      delete liked[playlistId];
-      delete loaded[playlistId];
-      localStorage.liked = JSON.stringify(liked);
-      localStorage.loaded = JSON.stringify(loaded);
-    });
   }
 
   function clearMessage() {
@@ -280,8 +190,6 @@ export default function Playlist() {
                 filter,
                 setFilter,
                 playDefault,
-                status,
-                switchLiked,
                 clearFilter,
                 share,
                 limit,
@@ -317,9 +225,6 @@ export default function Playlist() {
               filter,
               setFilter,
               playDefault,
-              status,
-              setStatus,
-              switchLiked,
               vertical,
               showSummary,
               clearFilter,
@@ -344,4 +249,103 @@ export default function Playlist() {
       </div>
     </>
   );
+}
+
+export async function getServerSideProps({
+  params: { playlist_id },
+  req: {
+    cookies: { access_token, refresh_token },
+  },
+  res: { setHeader },
+}) {
+  if (refresh_token === undefined) {
+    return {
+      props: {
+        error: "missing_refresh_token",
+      },
+    };
+  }
+
+  if (access_token === undefined) {
+    access_token = await getAccessToken(refresh_token);
+
+    const now = new Date();
+    const time = now.getTime();
+
+    const accessTokenExpirationDate = new Date(time + 3600000); // expires in an hour
+    const refreshTokenExpirationDate = new Date(time + 34560000000); // expires in 400 days
+
+    setHeader("Set-Cookie", ["access_token=deleted", "refresh_token=deleted"]);
+
+    setHeader("Set-Cookie", [
+      `access_token=${access_token};expires=${accessTokenExpirationDate.toUTCString()}`,
+      `refresh_token=${refresh_token};expires=${refreshTokenExpirationDate.toUTCString()}`,
+    ]);
+  }
+
+  if (playlist_id === undefined) {
+    return {
+      props: {
+        error: "playlist_not_found",
+      },
+    };
+  }
+
+  const playlistsResponse = await fetch(
+    "https://api.spotify.com/v1/playlists/" + playlist_id,
+    {
+      headers: {
+        Authorization: "Bearer " + access_token,
+      },
+    }
+  );
+
+  const playlistsBody = await playlistsResponse.json();
+
+  if (playlistsBody.error) {
+    return {
+      props: {
+        error: "playlist_not_found",
+      },
+    };
+  }
+
+  const playlist = {
+    name: playlistsBody.name,
+    description: playlistsBody.description,
+    id: playlistsBody.id,
+    tracks: { total: playlistsBody.tracks.total },
+    owner: {
+      display_name: playlistsBody.owner.display_name,
+      id: playlistsBody.owner.id,
+    },
+    images: [{ url: playlistsBody.images[0]?.url }],
+  };
+
+  const result = await loadTracks(playlistsBody.tracks, access_token);
+
+  const tracks = result.map(
+    ({ added_at, track: { album, artists, name, uri, duration_ms } }) => ({
+      added_at,
+      track: {
+        album: {
+          images: [{ url: album.images[0]?.url }],
+          name: album.name,
+        },
+        artists: artists.map(({ name }) => ({
+          name,
+        })),
+        name,
+        uri,
+        duration_ms,
+      },
+    })
+  );
+
+  return {
+    props: {
+      playlist,
+      tracks,
+    },
+  };
 }

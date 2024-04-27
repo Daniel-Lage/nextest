@@ -1,9 +1,4 @@
 export const localStorageKeys = [
-  "accessToken",
-  "refreshToken",
-  "saved",
-  "liked",
-  "loaded",
   "following",
   "sortFollowingKey",
   "reversedFollowing",
@@ -11,5 +6,5 @@ export const localStorageKeys = [
   "reversedPlaylists",
   "sortTracksKey",
   "reversedTracks",
-  "user",
+  "theme",
 ];

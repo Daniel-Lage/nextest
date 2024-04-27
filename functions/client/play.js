@@ -1,10 +1,10 @@
-import getAccessToken from "./getAccessToken";
-import loadTracks from "./loadTracks";
+import getAccessToken from "../server/getAccessToken";
+import loadTracks from "../server/loadTracks";
+import parseCookies from "./parseCookies";
 import shuffleArray from "./shuffleArray";
 
 export default async function play(
   e,
-  setMessage,
   skip,
   playlist,
   limit = { type: "No Limit", value: 0 },
@@ -12,18 +12,24 @@ export default async function play(
 ) {
   e.stopPropagation();
 
-  const accessToken = await getAccessToken();
+  var { access_token, refresh_token } = parseCookies(document.cookie);
+
+  if (refresh_token === undefined || access_token === undefined) {
+    return {
+      error: "missing_token",
+    };
+  }
 
   const playerResponse = await fetch("https://api.spotify.com/v1/me/player", {
     headers: {
-      Authorization: "Bearer " + accessToken,
+      Authorization: "Bearer " + access_token,
     },
   });
 
   if (playerResponse.status !== 200) {
-    setMessage("Não encontrou dispositivo spotify ativo");
-    e.target.blur();
-    return;
+    return {
+      error: "device_not_found",
+    };
   }
 
   var shuffledTracks;

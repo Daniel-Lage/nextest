@@ -1,13 +1,9 @@
 import { useRouter } from "next/router";
-import Image from "next/image";
-
-import getAccessToken from "@/functions/getAccessToken";
-import shuffleArray from "@/functions/shuffleArray";
 import styles from "@/styles/User.module.css";
-import loadTracks from "@/functions/loadTracks";
 import Button from "./button";
-import play from "@/functions/play";
+import play from "@/functions/client/play";
 import SVG from "./svg";
+import logout from "@/functions/client/logout";
 
 export default function PlaylistThumbnail({
   playlist: {
@@ -46,7 +42,19 @@ export default function PlaylistThumbnail({
       >
         <Button
           className={styles.playlistButton}
-          action={(e) => play(e, setMessage, true, id)}
+          action={(e) => {
+            const result = play(e, true, id);
+
+            switch (result.error) {
+              case "missing_token": {
+                logout(router);
+              }
+              case "device_not_found": {
+                setMessage("Não encontrou dispositivo spotify ativo");
+                e.target.blur();
+              }
+            }
+          }}
         >
           <SVG name="play" size={20} />
         </Button>

@@ -19,8 +19,6 @@ export default function UserDetails({
   following,
   switchFollowing,
   goFollowing,
-  limit,
-  setLimit,
 }) {
   function clearFilter() {
     setFilter("");

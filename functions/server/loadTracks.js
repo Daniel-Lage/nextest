@@ -1,21 +1,17 @@
-const batchSize = 50;
-export default async function loadPlaylists(playlists, temp) {
-  temp = [...temp, ...playlists.items];
+const batchSize = 100;
+export default async function loadTracks(tracks, access_token) {
+  var temp = [...tracks.items];
 
-  if (playlists.next) {
-    const url = new URL(playlists.next);
+  if (tracks.next) {
+    const url = new URL(tracks.next);
     const baseURL = url.origin + url.pathname;
     const requests = [];
 
-    for (
-      let offset = batchSize;
-      offset < playlists.total;
-      offset += batchSize
-    ) {
+    for (let offset = batchSize; offset < tracks.total; offset += batchSize) {
       requests.push(
         fetch(baseURL + "?limit=" + batchSize + "&offset=" + offset, {
           headers: {
-            Authorization: "Bearer " + localStorage.accessToken,
+            Authorization: "Bearer " + access_token,
           },
         })
       );
@@ -31,6 +27,5 @@ export default async function loadPlaylists(playlists, temp) {
       temp = [...temp, ...body.items];
     });
   }
-
-  return temp;
+  return temp.filter((value) => value.track);
 }

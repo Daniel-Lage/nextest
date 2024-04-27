@@ -17,8 +17,6 @@ export default function PlaylistDetails({
   filter,
   setFilter,
   playDefault,
-  status,
-  switchLiked,
   clearFilter,
   share,
   limit,
@@ -97,15 +95,6 @@ export default function PlaylistDetails({
             <Button className="button largeCircle" action={share}>
               <SVG name="share" size={20} />
             </Button>
-
-            {status === "saved" || (
-              <Button className="button largeCircle" action={switchLiked}>
-                <SVG
-                  name={status === "liked" ? "heart-filled" : "heart-outline"}
-                  size={20}
-                />
-              </Button>
-            )}
           </div>
         </div>
       </div>

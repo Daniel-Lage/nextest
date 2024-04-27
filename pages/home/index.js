@@ -5,7 +5,7 @@ import Head from "next/head";
 
 import styles from "@/styles/User.module.css";
 
-import getAccessToken from "@/functions/getAccessToken";
+import getAccessToken from "@/functions/server/getAccessToken";
 
 import PlaylistThumbnail from "@/components/PlaylistThumbnail";
 import Header from "@/components/header";
@@ -14,16 +14,12 @@ import UserDetails from "@/components/userDetails";
 import UserSummary from "@/components/userSummary";
 import { localStorageKeys } from "@/constants/localStorageKeys";
 import { sortKeys } from "@/constants/playlistSortKeys";
-import loadPlaylists from "@/functions/loadPlaylists";
+import loadPlaylists from "@/functions/server/loadPlaylists";
+import logout from "@/functions/client/logout";
 
 var prevScrollTop = 0;
 
-export default function Home() {
-  console.log(process.env);
-
-  const [user, setUser] = useState();
-  const [total, setTotal] = useState();
-  const [playlists, setPlaylists] = useState([]);
+export default function Home({ user, playlists, total, error }) {
   const [following, setFollowing] = useState([]);
 
   const [filter, setFilter] = useState("");
@@ -32,21 +28,25 @@ export default function Home() {
 
   const filteredPlaylists = useMemo(
     () =>
-      playlists.filter(
-        (playlist) =>
-          playlist.name.toLowerCase().includes(filter.toLowerCase()) ||
-          playlist.owner.display_name
-            .toLowerCase()
-            .includes(filter.toLowerCase())
-      ),
+      playlists === undefined
+        ? []
+        : playlists.filter(
+            (playlist) =>
+              playlist.name.toLowerCase().includes(filter.toLowerCase()) ||
+              playlist.owner.display_name
+                .toLowerCase()
+                .includes(filter.toLowerCase())
+          ),
     [playlists, filter]
   );
 
   const sortedPlaylists = useMemo(
     () =>
-      [...filteredPlaylists].sort((a, b) =>
-        reversed ? sortKeys[sortKey](b, a) : sortKeys[sortKey](a, b)
-      ),
+      sortKey === undefined
+        ? []
+        : [...filteredPlaylists].sort((a, b) =>
+            reversed ? sortKeys[sortKey](b, a) : sortKeys[sortKey](a, b)
+          ),
     [filteredPlaylists, sortKey, reversed]
   );
 
@@ -59,17 +59,12 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    if (localStorageKeys.some((value) => localStorage[value] === undefined)) {
-      const theme = localStorage.theme;
-      localStorage.clear();
-      localStorage.theme = theme;
-      router.replace("/");
+    if (
+      localStorageKeys.some((value) => localStorage[value] === undefined) ||
+      error === "missing_refresh_token"
+    ) {
+      logout(router);
     } else {
-      setPlaylists([
-        ...Object.values(JSON.parse(localStorage.saved)),
-        ...Object.values(JSON.parse(localStorage.liked)),
-      ]);
-
       if (sortKeys[localStorage.sortPlaylistsKey]) {
         setSortKey(localStorage.sortPlaylistsKey);
       } else {
@@ -78,78 +73,7 @@ export default function Home() {
 
       setReversed(JSON.parse(localStorage.reversedPlaylists));
 
-      setUser(JSON.parse(localStorage.user));
       setFollowing(Object.values(JSON.parse(localStorage.following)));
-
-      async function fetchData() {
-        const accessToken = await getAccessToken();
-
-        const meResponse = await fetch("https://api.spotify.com/v1/me", {
-          headers: {
-            Authorization: "Bearer " + accessToken,
-          },
-        });
-
-        const meBody = await meResponse.json();
-
-        const user = {
-          id: meBody.id,
-          display_name: meBody.display_name,
-          images: [{ url: meBody.images[0]?.url }],
-          followers: { total: meBody.followers.total },
-        };
-
-        setUser(user);
-        localStorage.user = JSON.stringify(user);
-
-        const playlistsResponse = await fetch(
-          "https://api.spotify.com/v1/me/playlists?limit=50",
-          {
-            headers: {
-              Authorization: "Bearer " + accessToken,
-            },
-          }
-        );
-
-        const playlistsBody = await playlistsResponse.json();
-
-        if (playlistsBody.error) {
-          console.error(playlistsBody.error.message);
-        } else {
-          setTotal(playlistsBody.total);
-          loadPlaylists(playlistsBody, []).then((playlists) => {
-            playlists = playlists.map(
-              ({
-                name,
-                description,
-                id,
-                tracks: { total },
-                owner: { display_name },
-                images,
-              }) => ({
-                name,
-                description,
-                id,
-                tracks: { total },
-                owner: { display_name },
-                images: [{ url: images[0]?.url }],
-              })
-            );
-            setPlaylists([
-              ...playlists,
-              ...Object.values(JSON.parse(localStorage.liked)),
-            ]);
-
-            const saved = {};
-            playlists.forEach((playlist) => {
-              saved[playlist.id] = playlist;
-            });
-            localStorage.saved = JSON.stringify(saved);
-          });
-        }
-      }
-
-      fetchData();
     }
   }, [router]);
 
@@ -168,13 +92,6 @@ export default function Home() {
 
   function clearMessage() {
     setMessage("");
-  }
-
-  function logout() {
-    const theme = localStorage.theme;
-    localStorage.clear();
-    localStorage.theme = theme;
-    router.replace("/");
   }
 
   function reverse() {
@@ -207,7 +124,11 @@ export default function Home() {
         ].join(" ")}
       >
         <div className="before">
-          <Header home exit={logout} {...{ theme, setTheme, headerHidden }} />
+          <Header
+            home
+            exit={() => logout(router)}
+            {...{ theme, setTheme, headerHidden }}
+          />
           {showSummary && (
             <UserSummary
               self
@@ -268,4 +189,104 @@ export default function Home() {
       </div>
     </>
   );
+}
+
+export async function getServerSideProps({
+  req: {
+    cookies: { access_token, refresh_token },
+  },
+  res: { setHeader },
+}) {
+  if (refresh_token === undefined) {
+    return {
+      props: {
+        error: "missing_refresh_token",
+      },
+    };
+  }
+
+  const now = new Date();
+  const time = now.getTime();
+
+  const maxExpirationDate = new Date(time + 34560000000); // expires in 400 days
+
+  if (access_token === undefined) {
+    access_token = await getAccessToken(refresh_token);
+
+    const accessTokenExpirationDate = new Date(time + 3600000); // expires in an hour
+
+    setHeader("Set-Cookie", ["access_token=deleted", "refresh_token=deleted"]);
+
+    setHeader("Set-Cookie", [
+      `access_token=${access_token};expires=${accessTokenExpirationDate.toUTCString()}`,
+      `refresh_token=${refresh_token};expires=${maxExpirationDate.toUTCString()}`,
+    ]);
+  }
+
+  const meResponse = await fetch("https://api.spotify.com/v1/me", {
+    headers: {
+      Authorization: "Bearer " + access_token,
+    },
+  });
+
+  const meBody = await meResponse.json();
+
+  const user = {
+    id: meBody.id,
+    display_name: meBody.display_name,
+    images: [{ url: meBody.images[0]?.url }],
+    followers: { total: meBody.followers.total },
+  };
+
+  setHeader("Set-Cookie", [
+    `me_id=${meBody.id};expires=${maxExpirationDate.toUTCString()}`,
+  ]);
+
+  const playlistsResponse = await fetch(
+    "https://api.spotify.com/v1/me/playlists?limit=50",
+    {
+      headers: {
+        Authorization: "Bearer " + access_token,
+      },
+    }
+  );
+  const playlistsBody = await playlistsResponse.json();
+
+  const saved = {};
+
+  if (playlistsBody.error) {
+    return { props: { error: playlistsBody.error_description } };
+  } else {
+    const result = await loadPlaylists(playlistsBody, [], access_token);
+
+    const playlists = result.map(
+      ({
+        name,
+        description,
+        id,
+        tracks: { total },
+        owner: { display_name },
+        images,
+      }) => ({
+        name,
+        description,
+        id,
+        tracks: { total },
+        owner: { display_name },
+        images: [{ url: images[0]?.url }],
+      })
+    );
+
+    playlists.forEach((playlist) => {
+      saved[playlist.id] = playlist;
+    });
+  }
+
+  return {
+    props: {
+      user,
+      playlists: Object.values(saved),
+      total: playlistsBody.total,
+    },
+  };
 }
