@@ -52,9 +52,6 @@ export default async function play(
       shuffledTracks = shuffleArray([...(await loadTracks(tracksBody, []))]);
       break;
     }
-    default: {
-      return;
-    }
   }
 
   const playerBody = await playerResponse.json();
@@ -145,4 +142,5 @@ export default async function play(
       }
     );
   }
+  return {};
 }

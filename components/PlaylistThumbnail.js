@@ -42,8 +42,8 @@ export default function PlaylistThumbnail({
       >
         <Button
           className={styles.playlistButton}
-          action={(e) => {
-            const result = play(e, true, id);
+          action={async (e) => {
+            const result = await play(e, true, id);
 
             switch (result.error) {
               case "missing_token": {

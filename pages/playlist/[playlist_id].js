@@ -99,8 +99,8 @@ export default function Playlist({ playlist, tracks, error }) {
       localStorage.reversedTracks = JSON.stringify(reversed);
   }, [reversed]);
 
-  function playDefault(e) {
-    const result = play(e, skip, tracks, limit);
+  async function playDefault(e) {
+    const result = await play(e, skip, tracks, limit);
 
     switch (result.error) {
       case "missing_token": {
@@ -113,8 +113,8 @@ export default function Playlist({ playlist, tracks, error }) {
     }
   }
 
-  function playFrom(e, firstTrack) {
-    const result = play(e, skip, tracks, limit, firstTrack);
+  async function playFrom(e, firstTrack) {
+    const result = await play(e, skip, tracks, limit, firstTrack);
 
     switch (result.error) {
       case "missing_refresh_token": {
