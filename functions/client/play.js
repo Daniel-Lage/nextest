@@ -58,6 +58,8 @@ export default async function play(
 
   const deviceId = playerBody.device.id;
 
+  var progress = 0;
+
   if (firstTrack) {
     shuffledTracks.splice(
       shuffledTracks.findIndex(
@@ -65,17 +67,10 @@ export default async function play(
       ),
       1
     );
-    shuffledTracks.push(firstTrack);
-  }
-
-  var progress = 0;
-
-  if (skip) {
-    const track = shuffledTracks.pop();
 
     switch (limit.type) {
       case "Duration": {
-        progress += track.track.duration_ms;
+        progress += firstTrack.track.duration_ms;
         break;
       }
       case "Tracks": {
@@ -84,12 +79,12 @@ export default async function play(
       }
     }
 
-    if (progress > limit.value) return;
+    if (progress > limit.value) return {};
 
     await fetch(
       "https://api.spotify.com/v1/me/player/queue?" +
         new URLSearchParams({
-          uri: track.track.uri,
+          uri: firstTrack.track.uri,
           device_id: deviceId,
         }).toString(),
       {
@@ -99,7 +94,9 @@ export default async function play(
         },
       }
     );
+  }
 
+  if (skip) {
     await fetch(
       "https://api.spotify.com/v1/me/player/next?" +
         new URLSearchParams({
@@ -115,6 +112,8 @@ export default async function play(
   }
 
   for (const track of shuffledTracks) {
+    console.log(track);
+
     switch (limit.type) {
       case "Duration": {
         progress += track.track.duration_ms;
@@ -126,7 +125,7 @@ export default async function play(
       }
     }
 
-    if (progress > limit.value) return;
+    if (progress > limit.value) return {};
 
     fetch(
       "https://api.spotify.com/v1/me/player/queue?" +
