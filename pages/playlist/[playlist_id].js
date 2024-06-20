@@ -5,7 +5,6 @@ import { useRouter } from "next/router";
 import Head from "next/head";
 
 import getAccessToken from "@/functions/server/getAccessToken";
-import shuffleArray from "@/functions/client/shuffleArray";
 import Header from "@/components/header";
 import Track from "@/components/track";
 import Modal from "@/components/modal";
@@ -103,12 +102,18 @@ export default function Playlist({ playlist, tracks, error }) {
     const result = await play(e, skip, tracks, limit);
 
     switch (result.error) {
-      case "missing_token": {
+      case "missing_refresh_token": {
         logout(router);
+        break;
+      }
+      case "missing_access_token": {
+        location.reload();
+        break;
       }
       case "device_not_found": {
         setMessage("Não encontrou dispositivo spotify ativo");
         e.target.blur();
+        break;
       }
     }
   }
@@ -119,10 +124,16 @@ export default function Playlist({ playlist, tracks, error }) {
     switch (result.error) {
       case "missing_refresh_token": {
         logout(router);
+        break;
+      }
+      case "missing_access_token": {
+        location.reload();
+        break;
       }
       case "device_not_found": {
         setMessage("Não encontrou dispositivo spotify ativo");
         e.target.blur();
+        break;
       }
     }
   }

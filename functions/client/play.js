@@ -13,9 +13,15 @@ export default async function play(
 
   var { access_token, refresh_token } = parseCookies(document.cookie);
 
-  if (refresh_token === undefined || access_token === undefined) {
+  if (refresh_token === undefined) {
     return {
-      error: "missing_token",
+      error: "missing_refresh_token",
+    };
+  }
+
+  if (access_token === undefined) {
+    return {
+      error: "missing_access_token",
     };
   }
 
@@ -68,6 +74,14 @@ export default async function play(
       1
     );
 
+    shuffledTracks.unshift(firstTrack);
+  }
+
+  if (skip || firstTrack) {
+    // if first track is specified it needs to be added to queue before to account for varying delays on requests
+    // if current track is to be skipped then there needs to be a track on queue
+    firstTrack = shuffledTracks.shift();
+
     switch (limit.type) {
       case "Duration": {
         progress += firstTrack.track.duration_ms;
@@ -112,8 +126,6 @@ export default async function play(
   }
 
   for (const track of shuffledTracks) {
-    console.log(track);
-
     switch (limit.type) {
       case "Duration": {
         progress += track.track.duration_ms;

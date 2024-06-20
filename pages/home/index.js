@@ -193,7 +193,7 @@ export default function Home({ user, playlists, total, error }) {
 
 export async function getServerSideProps({
   req: {
-    cookies: { access_token, refresh_token },
+    cookies: { access_token, refresh_token, me_id },
   },
   res: { setHeader },
 }) {
@@ -238,9 +238,12 @@ export async function getServerSideProps({
     followers: { total: meBody.followers.total },
   };
 
-  setHeader("Set-Cookie", [
-    `me_id=${meBody.id};expires=${maxExpirationDate.toUTCString()}`,
-  ]);
+  if (me_id === undefined) {
+    setHeader("Set-Cookie", ["me_id=deleted"]);
+    setHeader("Set-Cookie", [
+      `me_id=${meBody.id};expires=${maxExpirationDate.toUTCString()}`,
+    ]);
+  }
 
   const playlistsResponse = await fetch(
     "https://api.spotify.com/v1/me/playlists?limit=50",

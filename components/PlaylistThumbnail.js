@@ -46,12 +46,18 @@ export default function PlaylistThumbnail({
             const result = await play(e, true, id);
 
             switch (result.error) {
-              case "missing_token": {
+              case "missing_refresh_token": {
                 logout(router);
+                break;
+              }
+              case "missing_access_token": {
+                location.reload();
+                break;
               }
               case "device_not_found": {
                 setMessage("Não encontrou dispositivo spotify ativo");
                 e.target.blur();
+                break;
               }
             }
           }}
